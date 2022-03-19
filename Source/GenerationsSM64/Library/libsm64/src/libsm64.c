@@ -238,6 +238,19 @@ void sm64_mario_set_position(int32_t marioId, float x, float y, float z)
     vec3f_set(gMarioState->pos, x, y, z);
 }
 
+void sm64_mario_set_velocity(int32_t marioId, float x, float y, float z)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
+    {
+        DEBUG_PRINT("Tried to set velocity of non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+
+    vec3f_set(gMarioState->vel, x, y, z);
+}
+
 uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject )
 {
     uint32_t id = surfaces_load_object( surfaceObject );

@@ -15,3 +15,6 @@
 #include <Helpers.h>
 
 #include <LostCodeLoader.h>
+
+#include <libsm64/src/libsm64.h>
+#include <libsm64/src/decomp/engine/surface_collision.h>

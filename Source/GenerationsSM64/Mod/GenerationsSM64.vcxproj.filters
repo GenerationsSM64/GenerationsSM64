@@ -4,8 +4,12 @@
     <ClCompile Include="Pch.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="Mod.cpp" />
+    <ClCompile Include="Mario.cpp" />
+    <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="SM64.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Pch.h" />
+    <ClInclude Include="Mod.h" />
   </ItemGroup>
 </Project>

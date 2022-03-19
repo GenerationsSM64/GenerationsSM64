@@ -100,7 +100,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DllMain.cpp" />
+    <ClCompile Include="Mario.cpp" />
     <ClCompile Include="Mod.cpp" />
     <ClCompile Include="Pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -108,8 +110,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pch.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="SM64.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Mod.h" />
     <ClInclude Include="Pch.h" />
   </ItemGroup>
   <ItemGroup>
