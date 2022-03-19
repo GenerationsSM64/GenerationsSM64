@@ -44,8 +44,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	hh::math::CQuaternion rotation;
 	hh::math::CVector velocity = playerContext->m_Velocity;
 
+	const bool outOfControl = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl];
+
 	// Give the control back to Sonic if out of control is enabled, otherwise, set the position and velocity.
-	if (playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl])
+	if (outOfControl)
 	{
 		sm64_mario_set_position(mario, position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f);
 
@@ -61,10 +63,6 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		player->m_spContext->m_spMatrixNode->NotifyChanged();
 	}
 
-	// Update only if we're dropping frames (eg. 30 FPS) or the frame index is even.
-	if (updateInfo.DeltaTime <= 1.0 / 57.5f && updateInfo.Frame & 1)
-		return;
-	
 	const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
 	const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
 
@@ -80,9 +78,13 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	inputs.buttonB = padState.IsDown(Sonic::eKeyState_X) || padState.IsDown(Sonic::eKeyState_Y);
 	inputs.buttonZ = padState.IsDown(Sonic::eKeyState_LeftTrigger) || padState.IsDown(Sonic::eKeyState_RightTrigger);
 
-	sm64_mario_tick(mario, &inputs, &state, &buffers);
+	const bool update = updateInfo.DeltaTime >= 1.0f / 45.0f || (updateInfo.Frame & 1) == 0;
 
-	if (!playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl])
+	// It's okay if we update in out of control as we override Mario's values.
+	if (update || outOfControl)
+		sm64_mario_tick(mario, &inputs, &state, &buffers);
+
+	if (!outOfControl)
 	{
 		computeMarioPositionAndRotation(position, rotation);
 		velocity = hh::math::CVector(state.velocity[0], state.velocity[1], state.velocity[2]) * 0.01f * 30.0f;
