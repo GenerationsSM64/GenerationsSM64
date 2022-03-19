@@ -84,6 +84,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	if (update || outOfControl)
 		sm64_mario_tick(mario, &inputs, &state, &buffers);
 
+	sm64_mario_set_health(mario, 0x500); // For now.
+
 	if (!outOfControl)
 	{
 		computeMarioPositionAndRotation(position, rotation);
