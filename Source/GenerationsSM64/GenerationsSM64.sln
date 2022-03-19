@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mod", "Mod", "{B227B4A0-9B47-4BB5-A895-0C3A2787E7AC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tool", "Tool", "{536269E2-C6DF-49DF-9F17-A0AB216A4C2A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{588A1795-23F8-4A56-A5B1-72246D1478D8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GenerationsSM64", "D:\Repositories\DllMods\Source\GenerationsSM64\Mod\GenerationsSM64.vcxproj", "{ACC137AD-3413-4157-AC90-BFDFBCD55827}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoundBankConverter", "D:\Repositories\DllMods\Source\GenerationsSM64\Tool\SoundBankConverter\SoundBankConverter.csproj", "{CC0FB7D7-A8DC-425C-B6C7-8F45667B3873}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libsm64", "Library\libsm64\libsm64.vcxproj", "{88993880-F049-40F3-AEDE-C0F8B5232FE1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACC137AD-3413-4157-AC90-BFDFBCD55827}.Debug|x86.ActiveCfg = Debug|Win32
+		{ACC137AD-3413-4157-AC90-BFDFBCD55827}.Debug|x86.Build.0 = Debug|Win32
+		{ACC137AD-3413-4157-AC90-BFDFBCD55827}.Release|x86.ActiveCfg = Release|Win32
+		{ACC137AD-3413-4157-AC90-BFDFBCD55827}.Release|x86.Build.0 = Release|Win32
+		{CC0FB7D7-A8DC-425C-B6C7-8F45667B3873}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CC0FB7D7-A8DC-425C-B6C7-8F45667B3873}.Debug|x86.Build.0 = Debug|Any CPU
+		{CC0FB7D7-A8DC-425C-B6C7-8F45667B3873}.Release|x86.ActiveCfg = Release|Any CPU
+		{CC0FB7D7-A8DC-425C-B6C7-8F45667B3873}.Release|x86.Build.0 = Release|Any CPU
+		{88993880-F049-40F3-AEDE-C0F8B5232FE1}.Debug|x86.ActiveCfg = Debug|Win32
+		{88993880-F049-40F3-AEDE-C0F8B5232FE1}.Debug|x86.Build.0 = Debug|Win32
+		{88993880-F049-40F3-AEDE-C0F8B5232FE1}.Release|x86.ActiveCfg = Release|Win32
+		{88993880-F049-40F3-AEDE-C0F8B5232FE1}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{ACC137AD-3413-4157-AC90-BFDFBCD55827} = {B227B4A0-9B47-4BB5-A895-0C3A2787E7AC}
+		{CC0FB7D7-A8DC-425C-B6C7-8F45667B3873} = {536269E2-C6DF-49DF-9F17-A0AB216A4C2A}
+		{88993880-F049-40F3-AEDE-C0F8B5232FE1} = {588A1795-23F8-4A56-A5B1-72246D1478D8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {616DB2F1-9E11-4FDD-8B6E-E3AB3CACDD54}
+	EndGlobalSection
+EndGlobal
