@@ -199,30 +199,61 @@ namespace SoundBankConverter
                             break;
 
                         // Recursively find the sound label.
-                        int current = i;
+                        int currentLine = i;
                         int soundLineIndex = -1;
+                        int lineCount = -1;
 
-                        while (current >= 0)
+                        while (currentLine >= 0)
                         {
                             // Extract sound name.
-                            spaceIndex = source[current].IndexOf(' ');
-                            string soundName = source[current].Substring(spaceIndex + 1);
+                            spaceIndex = source[currentLine].IndexOf(' ');
+                            string soundName = source[currentLine].Substring(spaceIndex + 1);
 
                             // Find the sound label.
                             string label = $"{soundName}:";
-                            soundLineIndex = source.FindIndex(x => x.StartsWith(label));
+                            soundLineIndex = source.FindIndex(x => x.StartsWith(label)) + 1;
 
                             // Find the next label to limit our search range.
-                            int nextLabelIndex = source.FindIndex(soundLineIndex + 1, x => x.Contains(':'));
+                            int nextLabelIndex = source.FindIndex(soundLineIndex, x => x.Contains(':'));
+                            lineCount = nextLabelIndex - soundLineIndex + 1;
 
                             // Check if this sound reuses another.
-                            current = source.FindIndex(soundLineIndex, nextLabelIndex - soundLineIndex + 1,
-                                x => x.StartsWith("chan_jump"));
+                            currentLine = source.FindIndex(soundLineIndex, lineCount, x => x.StartsWith("chan_jump"));
                         }
 
                         // Find bank/instrument calls.
-                        string setBank = source[source.FindIndex(soundLineIndex, x => x.StartsWith("chan_setbank"))];
-                        string setInstr = source[source.FindIndex(soundLineIndex, x => x.StartsWith("chan_setinstr"))];
+                        int bankLineIndex = source.FindIndex(soundLineIndex, lineCount, x => x.StartsWith("chan_setbank"));
+                        int instrLineIndex = source.FindIndex(soundLineIndex, lineCount, x => x.StartsWith("chan_setinstr"));
+
+                        // Find layers. These can set the bank/instrument as well.
+                        int layerLineIndex = source.FindIndex(soundLineIndex, lineCount, x => x.StartsWith("chan_setlayer"));
+                        if (layerLineIndex >= 0)
+                        {
+                            string setLayer = source[layerLineIndex];
+                            string layerName = setLayer.Substring(setLayer.IndexOf(',') + 2);
+
+                            string label = $"{layerName}:";
+                            layerLineIndex = source.FindIndex(x => x.StartsWith(label)) + 1;
+
+                            int nextLabelIndex = source.FindIndex(layerLineIndex, x => x.Contains(':'));
+                            lineCount = nextLabelIndex - layerLineIndex + 1;
+
+                            int layerBankLineIndex = source.FindIndex(layerLineIndex, lineCount, x => x.StartsWith("layer_setbank"));
+                            int layerInstrLineIndex = source.FindIndex(layerLineIndex, lineCount, x => x.StartsWith("layer_setinstr"));
+
+                            if (layerBankLineIndex >= 0) bankLineIndex = layerBankLineIndex;
+                            if (layerInstrLineIndex >= 0) instrLineIndex = layerInstrLineIndex;
+                        }
+
+                        // Skip if we couldn't find any banks or instruments.
+                        if (bankLineIndex == -1 || instrLineIndex == -1)
+                        {
+                            ++soundIndex;
+                            continue;
+                        }
+
+                        string setBank = source[bankLineIndex];
+                        string setInstr = source[instrLineIndex];
 
                         // Extract indices.
                         bankIndex = long.Parse(setBank.Substring(setBank.IndexOf(' ') + 1));
