@@ -6,6 +6,7 @@
 extern struct Surface* bb_find_ceil(f32 x, f32 y, f32 z, f32* pheight);
 extern struct Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight);
 extern s32 bb_find_wall_collisions(struct WallCollisionData* data);
+extern f32 bb_find_water_level(f32 x, f32 y, f32 z);
 
 /**
  * Iterate through the list of ceilings and find the first ceiling over a given point.
@@ -345,9 +346,9 @@ f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface **pfloor)
 	return height;
 }
 
-f32 find_water_level(f32 x, f32 z)
+f32 find_water_level(f32 x, f32 y, f32 z)
 {
-	return -10000000000.0f;
+	return bb_find_water_level(x, y, z);
 }
 
 f32 find_poison_gas_level(f32 x, f32 z)

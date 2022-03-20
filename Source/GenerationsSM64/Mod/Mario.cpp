@@ -44,10 +44,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	hh::math::CQuaternion rotation;
 	hh::math::CVector velocity = playerContext->m_Velocity;
 
-	const bool outOfControl = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl];
+	const bool controlSonic = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl];
 
 	// Give the control back to Sonic if out of control is enabled, otherwise, set the position and velocity.
-	if (outOfControl)
+	if (controlSonic)
 	{
 		sm64_mario_set_position(mario, position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f);
 
@@ -80,13 +80,13 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	const bool update = updateInfo.DeltaTime >= 1.0f / 45.0f || (updateInfo.Frame & 1) == 0;
 
-	// It's okay if we update in out of control as we override Mario's values.
-	if (update || outOfControl)
+	// It's okay if we update when Sonic is in control as we override Mario's values.
+	if (update || controlSonic)
 		sm64_mario_tick(mario, &inputs, &state, &buffers);
 
 	sm64_mario_set_health(mario, 0x500); // For now.
 
-	if (!outOfControl)
+	if (!controlSonic)
 	{
 		computeMarioPositionAndRotation(position, rotation);
 		velocity = hh::math::CVector(state.velocity[0], state.velocity[1], state.velocity[2]) * 0.01f * 30.0f;

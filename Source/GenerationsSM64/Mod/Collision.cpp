@@ -25,8 +25,9 @@ bool rayCast(hh::math::CVector const& begin, hh::math::CVector const& end,
 
 Surface surfaces[0x1000];
 int32_t surfaceIndex = 0;
+constexpr f32 limit = 100000000.0f;
 
-Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& direction, float offset = 50.0f, float length = 100000000000.0f)
+Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& direction, int flags = 20, float offset = 50.0f, float length = limit)
 {
 	const hh::math::CVector begin(x * 0.01f, y * 0.01f + offset * 0.01f, z * 0.01f);
 	const hh::math::CVector end = begin + direction * length * 0.01f;
@@ -34,18 +35,18 @@ Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& dir
 	hh::math::CVector position;
 	hh::math::CVector normal;
 
-	if (!rayCast(begin, end, position, normal, 20))
+	if (!rayCast(begin, end, position, normal, flags) || direction.dot(normal) >= 0)
 		return nullptr;
 
 	position *= 100.0f;
-
 	normal.normalize();
 
 	if (pheight)
 		*pheight = position.y();
 
-	Surface* surface = &surfaces[surfaceIndex++ % _countof(surfaces)];
+	Surface* surface = &surfaces[surfaceIndex % _countof(surfaces)];
 	memset(surface, 0, sizeof(Surface));
+	++surfaceIndex;
 
 	surface->vertex1[0] = position.x();
 	surface->vertex1[1] = position.y();
@@ -75,9 +76,31 @@ extern "C" Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight)
 {
 	Surface* surface = rayCast(x, y, z, pheight, -hh::math::CVector::UnitY()); // Cast a ray downwards.
 
-	// NULL surface is going to cause crash. Return the previous surface instead.
+	// NULL surface is going to cause crash. Create a dummy surface instead.
 	if (!surface)
-		return &surfaces[(surfaceIndex - 1) % _countof(surfaces)];
+	{
+		surface = &surfaces[surfaceIndex % _countof(surfaces)];
+		memset(surface, 0, sizeof(Surface));
+		++surfaceIndex;
+
+		surface->vertex1[0] = limit;
+		surface->vertex1[1] = -limit;
+		surface->vertex1[2] = limit;
+
+		surface->vertex2[0] = limit;
+		surface->vertex2[1] = -limit;
+		surface->vertex2[2] = limit;
+
+		surface->vertex3[0] = limit;
+		surface->vertex3[1] = -limit;
+		surface->vertex3[2] = limit;
+
+		surface->normal.x = 0.0f;
+		surface->normal.y = 1.0f;
+		surface->normal.z = 0.0f;
+
+		*pheight = -limit;
+	}
 
 	return surface;
 }
@@ -101,9 +124,9 @@ extern "C" s32 bb_find_wall_collisions(struct WallCollisionData* data)
 
 	for (auto& direction : directions)
 	{
-		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, data->offsetY, data->radius);
+		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, 20, data->offsetY, data->radius);
 
-		if (surface && abs(surface->normal.y) <= 0.1f)
+		if (surface)
 		{
 			if (data->numWalls > 0)
 			{
@@ -130,4 +153,22 @@ extern "C" s32 bb_find_wall_collisions(struct WallCollisionData* data)
 	}
 
 	return data->numWalls;
+}
+
+extern "C" f32 bb_find_water_level(f32 x, f32 y, f32 z)
+{
+	static f32 waterLevel;
+
+	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
+
+	if (playerContext && playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OnWater])
+	{
+		if (waterLevel == -limit)
+			waterLevel = y;
+	}
+
+	else
+		waterLevel = -limit;
+
+	return waterLevel;
 }
