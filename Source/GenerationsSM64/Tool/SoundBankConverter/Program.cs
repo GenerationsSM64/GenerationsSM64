@@ -186,8 +186,8 @@ namespace SoundBankConverter
                         // safely skip to the #else statement if we run into one.
                         if (source[i].StartsWith("#ifdef"))
                         {
-                            while (i < source.Count && !source[i].StartsWith("#"))
-                                i++;
+                            while (++i < source.Count && !source[i].StartsWith("#"))
+                                ;
                         }
 
                         // Skip any other preprocessor directive.
@@ -198,15 +198,31 @@ namespace SoundBankConverter
                         if (!source[i].StartsWith("sound_ref"))
                             break;
 
-                        spaceIndex = source[i].IndexOf(' ');
-                        string soundName = source[i].Substring(spaceIndex + 1);
+                        // Recursively find the sound label.
+                        int current = i;
+                        int soundLineIndex = -1;
 
-                        // Find the sound label.
-                        int soundLineIndex = source.IndexOf($"{soundName}:");
+                        while (current >= 0)
+                        {
+                            // Extract sound name.
+                            spaceIndex = source[current].IndexOf(' ');
+                            string soundName = source[current].Substring(spaceIndex + 1);
+
+                            // Find the sound label.
+                            string label = $"{soundName}:";
+                            soundLineIndex = source.FindIndex(x => x.StartsWith(label));
+
+                            // Find the next label to limit our search range.
+                            int nextLabelIndex = source.FindIndex(soundLineIndex + 1, x => x.Contains(':'));
+
+                            // Check if this sound reuses another.
+                            current = source.FindIndex(soundLineIndex, nextLabelIndex - soundLineIndex + 1,
+                                x => x.StartsWith("chan_jump"));
+                        }
 
                         // Find bank/instrument calls.
-                        string setBank = source[source.FindIndex(soundLineIndex + 1, x => x.StartsWith("chan_setbank"))];
-                        string setInstr = source[source.FindIndex(soundLineIndex + 1, x => x.StartsWith("chan_setinstr"))];
+                        string setBank = source[source.FindIndex(soundLineIndex, x => x.StartsWith("chan_setbank"))];
+                        string setInstr = source[source.FindIndex(soundLineIndex, x => x.StartsWith("chan_setinstr"))];
 
                         // Extract indices.
                         bankIndex = long.Parse(setBank.Substring(setBank.IndexOf(' ') + 1));
@@ -214,7 +230,10 @@ namespace SoundBankConverter
                         
                         // See if we have a synth at these indices.
                         if (!synthMap.TryGetValue(bankIndex << 32 | instrIndex, out var synth))
+                        {
+                            ++soundIndex;
                             continue;
+                        }
 
                         // Create cue using this data.
                         cueList.Add(new SerializationCueTable

@@ -38,8 +38,9 @@ Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& dir
 	if (!rayCast(begin, end, position, normal, flags) || direction.dot(normal) >= 0)
 		return nullptr;
 
-	position *= 100.0f;
 	normal.normalize();
+	position += position.cwiseAbs().cwiseProduct(normal.cwiseSign()) * 0.0000002f;
+	position *= 100.0f;
 
 	if (pheight)
 		*pheight = position.y();
