@@ -5,6 +5,7 @@
 
 extern struct Surface* bb_find_ceil(f32 x, f32 y, f32 z, f32* pheight);
 extern struct Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight);
+extern s32 bb_find_wall_collisions(struct WallCollisionData* data);
 
 /**
  * Iterate through the list of ceilings and find the first ceiling over a given point.
@@ -299,17 +300,7 @@ s32 find_wall_collisions(struct WallCollisionData *colData)
     s32 numCollisions = 0;
     colData->numWalls = 0;
 
-    // libsm64: Don't care about level boundaries with 32-bit ints for vertex positions
-    // s16 x = colData->x;
-    // s16 z = colData->z;
-    // if (x <= -LEVEL_BOUNDARY_MAX || x >= LEVEL_BOUNDARY_MAX) {
-    //     return numCollisions;
-    // }
-    // if (z <= -LEVEL_BOUNDARY_MAX || z >= LEVEL_BOUNDARY_MAX) {
-    //     return numCollisions;
-    // }
-
-    numCollisions += find_wall_collisions_from_list(colData);
+    numCollisions += bb_find_wall_collisions(colData);
     return numCollisions;
 }
 

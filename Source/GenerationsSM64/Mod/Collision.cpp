@@ -26,10 +26,10 @@ bool rayCast(hh::math::CVector const& begin, hh::math::CVector const& end,
 Surface surfaces[0x1000];
 int32_t surfaceIndex = 0;
 
-Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& direction)
+Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& direction, float offset = 50.0f, float length = 100000000000.0f)
 {
-	const hh::math::CVector begin(x * 0.01f, y * 0.01f + 0.5f, z * 0.01f);
-	const hh::math::CVector end = begin + direction * 1000000000.0f;
+	const hh::math::CVector begin(x * 0.01f, y * 0.01f + offset * 0.01f, z * 0.01f);
+	const hh::math::CVector end = begin + direction * length * 0.01f;
 
 	hh::math::CVector position;
 	hh::math::CVector normal;
@@ -39,7 +39,10 @@ Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& dir
 
 	position *= 100.0f;
 
-	*pheight = position.y();
+	normal.normalize();
+
+	if (pheight)
+		*pheight = position.y();
 
 	Surface* surface = &surfaces[surfaceIndex++ % _countof(surfaces)];
 	memset(surface, 0, sizeof(Surface));
@@ -77,4 +80,54 @@ extern "C" Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight)
 		return &surfaces[(surfaceIndex - 1) % _countof(surfaces)];
 
 	return surface;
+}
+
+extern "C" s32 bb_find_wall_collisions(struct WallCollisionData* data)
+{
+	static const hh::math::CVector directions[] =
+	{
+		-hh::math::CVector::UnitX(),
+		hh::math::CVector::UnitX(),
+		-hh::math::CVector::UnitZ(),
+		hh::math::CVector::UnitZ(),
+
+		hh::math::CVector(0.707f, 0, 0.707f),
+		hh::math::CVector(0.707f, 0, -0.707f),
+		hh::math::CVector(-0.707f, 0, 0.707f),
+		hh::math::CVector(-0.707f, 0, -0.707f),
+	};
+
+	data->numWalls = 0;
+
+	for (auto& direction : directions)
+	{
+		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, data->offsetY, data->radius);
+
+		if (surface && abs(surface->normal.y) <= 0.1f)
+		{
+			if (data->numWalls > 0)
+			{
+				float x1 = surface->vertex1[0] - data->x;
+				float y1 = surface->vertex1[1] - data->y - data->offsetY;
+				float z1 = surface->vertex1[2] - data->z;
+
+				float x2 = data->walls[0]->vertex1[0] - data->x;
+				float y2 = data->walls[0]->vertex1[1] - data->y - data->offsetY;
+				float z2 = data->walls[0]->vertex1[2] - data->z;
+
+				if ((x1 * x1 + y1 * y1 + z1 * z1) > (x2 * x2 + y2 * y2 + z2 * z2))
+					continue;
+			}
+
+			data->numWalls = 1;
+			data->walls[0] = surface;
+		}
+	}
+	if (data->numWalls > 0)
+	{
+		data->x = data->walls[0]->vertex1[0] + data->walls[0]->normal.x * data->radius;
+		data->z = data->walls[0]->vertex1[2] + data->walls[0]->normal.z * data->radius;
+	}
+
+	return data->numWalls;
 }
