@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <cmath>
 
 #include <INIReader.h>
 

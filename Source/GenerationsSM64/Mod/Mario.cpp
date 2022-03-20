@@ -1,10 +1,21 @@
 #include "Mod.h"
 
+#define DEBUG_DRAW_TEXT_DLL_IMPORT
+#include "../../GenerationsParameterEditor/Include/DebugDrawText.h"
+
 extern "C" void bb_play_sound(s32 soundBits, f32* pos)
 {
 	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	if (playerContext)
 		playerContext->PlaySound(soundBits & 0xF0FF0000, false);
+}
+
+hh::math::CMatrix customTransform;
+bool useCustomTransform;
+
+extern "C" f32* bb_get_custom_mario_transform()
+{
+	return useCustomTransform ? customTransform.data() : nullptr;
 }
 
 int32_t mario = -1;
@@ -13,6 +24,7 @@ SM64MarioState state;
 SM64MarioGeometryBuffers buffers;
 boost::shared_ptr<hh::mr::CModelData> modelData;
 boost::shared_ptr<hh::mr::CSingleElement> renderable;
+size_t previousTriangleCount;
 
 void deleteMario()
 {
@@ -32,27 +44,59 @@ void computeMarioPositionAndRotation(hh::math::CVector& position, hh::math::CQua
 
 void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& updateInfo)
 {
-	hh::math::CVector position = player->m_spContext->m_spMatrixNode->m_Transform.m_Position;
+	const auto playerContext = static_cast<Sonic::Player::CPlayerSpeedContext*>(player->m_spContext.get());
+	hh::math::CVector position = playerContext->m_spMatrixNode->m_Transform.m_Position;
 
-	// Create Mario if we haven't yet. This needs to be delayed
+	// Create Mario if we haven't yet, or if Sonic is dead. This needs to be delayed
 	// due to the ray cast function randomly crashing on loading.
-	if (mario == -1)
+	const bool restarting = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_PrepreRestart];
+
+	if (restarting && mario >= 0)
+	{
+		sm64_mario_delete(mario);
+		mario = -1;
+	}
+
+	if (mario == -1 && !restarting)
 		mario = sm64_mario_create(position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f);
 
-	const auto playerContext = static_cast<Sonic::Player::CPlayerSpeedContext*>(player->m_spContext.get());
+	if (mario == -1)
+		return;
 
 	hh::math::CQuaternion rotation;
-	hh::math::CVector velocity = playerContext->m_Velocity;
+	hh::math::CVector velocity;
 
-	const bool controlSonic = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl];
+	// Give the control back to Sonic if:
+	// - Out of control is enabled.
+	// - Sonic is grinding.
+	// Otherwise, set the position and velocity.
+	const bool controlSonic =
+		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl] ||
+		strstr(player->m_StateMachine.GetCurrentState()->GetStateName().c_str(), "Grind");
 
-	// Give the control back to Sonic if out of control is enabled, otherwise, set the position and velocity.
 	if (controlSonic)
 	{
-		sm64_mario_set_position(mario, position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f);
+		velocity = playerContext->m_Velocity;
+		rotation = playerContext->m_spMatrixNode->m_Transform.m_Rotation;
 
 		// Sonic's velocity is meters per second, Mario's velocity is centimeters per frame.
-		sm64_mario_set_velocity(mario, velocity.x() * 100.0f / 30.0f, velocity.y() * 100.0f / 30.0f, velocity.z() * 100.0f / 30.0f);
+		velocity *= 100.0f / 30.0f;
+		rotation.normalize();
+
+		sm64_mario_set_position(mario, position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f);
+		sm64_mario_set_velocity(mario, velocity.x(), velocity.y(), velocity.z(), (rotation * hh::math::CVector::UnitZ()).dot(velocity));
+
+		const auto direction = (rotation * hh::math::CVector::UnitZ()).normalized();
+
+		float norm = sqrtf(direction.x() * direction.x() + direction.z() * direction.z());
+		if (norm > 0.0f)
+			norm = 1.0f / norm;
+
+		const float yaw = atan2(direction.x() * norm, direction.z() * norm);
+		sm64_mario_set_face_angle(mario, asin(-direction.y()), yaw, 0);
+
+		customTransform = Eigen::Translation3f(position * 100.0f) * rotation;
+		useCustomTransform = true;
 	}
 
 	else
@@ -61,6 +105,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		player->m_spContext->m_spMatrixNode->m_Transform.SetRotationAndPosition(rotation, position);
 		player->m_spContext->m_spMatrixNode->NotifyChanged();
+
+		useCustomTransform = false;
 	}
 
 	const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
@@ -80,8 +126,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	const bool update = updateInfo.DeltaTime >= 1.0f / 45.0f || (updateInfo.Frame & 1) == 0;
 
-	// It's okay if we update when Sonic is in control as we override Mario's values.
-	if (update || controlSonic)
+	if (update)
 		sm64_mario_tick(mario, &inputs, &state, &buffers);
 
 	sm64_mario_set_health(mario, 0x500); // For now.
@@ -123,14 +168,20 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	for (size_t i = 0; i < (size_t)buffers.numTrianglesUsed * 3; i++)
 	{
-		vertices[i].position[0] = (buffers.position[i * 3 + 0] - state.position[0]) * 0.01f;
-		vertices[i].position[1] = (buffers.position[i * 3 + 1] - state.position[1]) * 0.01f;
-		vertices[i].position[2] = (buffers.position[i * 3 + 2] - state.position[2]) * 0.01f;
+		vertices[i].position[0] = buffers.position[i * 3 + 0] * 0.01f - position.x();
+		vertices[i].position[1] = buffers.position[i * 3 + 1] * 0.01f - position.y();
+		vertices[i].position[2] = buffers.position[i * 3 + 2] * 0.01f - position.z();
 
 		memcpy(vertices[i].color, &buffers.color[i * 3], sizeof(vertices[i].color));
 		memcpy(vertices[i].normal, &buffers.normal[i * 3], sizeof(vertices[i].normal));
 		memcpy(vertices[i].uv, &buffers.uv[i * 2], sizeof(vertices[i].uv));
 	}
+
+	// Clear remnants
+	if (previousTriangleCount > buffers.numTrianglesUsed)
+		memset(&vertices[(size_t)buffers.numTrianglesUsed * 3], 0, (previousTriangleCount - buffers.numTrianglesUsed) * 3 * sizeof(Vertex));
+
+	previousTriangleCount = buffers.numTrianglesUsed;
 
 	vertexBuffer->Unlock();
 

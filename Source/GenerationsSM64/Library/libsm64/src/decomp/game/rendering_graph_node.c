@@ -1121,6 +1121,8 @@ void geo_process_node_and_siblings(struct GraphNode *firstNode) {
 //     }
 // }
 
+extern f32* bb_get_custom_mario_transform();
+
 void geo_process_root_hack_single_node(struct GraphNode *node)
 {
     gDisplayListHead = NULL; // Currently unused, but referenced
@@ -1142,7 +1144,13 @@ void geo_process_root_hack_single_node(struct GraphNode *node)
 
     // Hacked in from geo_proces_object since we only have Mario
     //geo_process_object( node );
-    if (gMarioObject->header.gfx.throwMatrix != NULL) {
+    f32* customTransform = bb_get_custom_mario_transform();
+
+    if (customTransform) {
+        mtxf_copy(gMatStack[++gMatStackIndex], customTransform);
+    }
+
+    else if (gMarioObject->header.gfx.throwMatrix != NULL) {
         mtxf_mul(gMatStack[gMatStackIndex + 1], *gMarioObject->header.gfx.throwMatrix, gMatStack[gMatStackIndex]);
         mtxf_scale_vec3f( gMatStack[gMatStackIndex + 1], gMatStack[gMatStackIndex + 1], gMarioObject->header.gfx.scale );
         gMarioObject->header.gfx.throwMatrix = &gMatStack[++gMatStackIndex];

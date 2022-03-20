@@ -204,7 +204,7 @@ void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, str
     outState->health = gMarioState->health;
     vec3f_copy( outState->position, gMarioState->pos );
     vec3f_copy( outState->velocity, gMarioState->vel );
-    outState->faceAngle = (float)gMarioState->faceAngle[1] / 32768.0f * 3.14159f;
+    outState->faceAngle = (float)gMarioState->faceAngle[1] / 32768.0f * M_PI;
 }
 
 void sm64_mario_delete( int32_t marioId )
@@ -238,7 +238,7 @@ void sm64_mario_set_position(int32_t marioId, float x, float y, float z)
     vec3f_set(gMarioState->pos, x, y, z);
 }
 
-void sm64_mario_set_velocity(int32_t marioId, float x, float y, float z)
+void sm64_mario_set_velocity(int32_t marioId, float x, float y, float z, float forwardVel)
 {
     if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
     {
@@ -249,6 +249,7 @@ void sm64_mario_set_velocity(int32_t marioId, float x, float y, float z)
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
     vec3f_set(gMarioState->vel, x, y, z);
+    gMarioState->forwardVel = forwardVel;
 }
 
 void sm64_mario_set_health(int32_t marioId, int16_t health)
@@ -262,6 +263,25 @@ void sm64_mario_set_health(int32_t marioId, int16_t health)
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
     gMarioState->health = health;
+}
+
+void sm64_mario_set_face_angle(int32_t marioId, float x, float y, float z)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
+    {
+        DEBUG_PRINT("Tried to set face angle of non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+
+    s32 sx = x / M_PI * 32768.0f;
+    s32 sy = y / M_PI * 32768.0f;
+    s32 sz = z / M_PI * 32768.0f;
+
+    gMarioState->faceAngle[0] = sx < -32768 ? -32768 : sx > 32767 ? 32767 : sx;
+    gMarioState->faceAngle[1] = sy < -32768 ? -32768 : sy > 32767 ? 32767 : sy;
+    gMarioState->faceAngle[2] = sz < -32768 ? -32768 : sz > 32767 ? 32767 : sz;
 }
 
 uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject )
