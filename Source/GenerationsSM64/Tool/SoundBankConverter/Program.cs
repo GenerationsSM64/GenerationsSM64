@@ -42,10 +42,17 @@ namespace SoundBankConverter
             var soundElementList = new List<SerializationSoundElementTable>();
             var voiceLimitGroups = new List<SerializationVoiceLimitGroupTable>();
 
-            // Create default voice limit group for the slide SFX
+            // Create default voice limit group for Mario's voice
             voiceLimitGroups.Add(new SerializationVoiceLimitGroupTable
             {
                 VoiceLimitGroupName = "mario",
+                VoiceLimitGroupNum = 1
+            });
+
+            // Create default voice limit group for the slide SFX
+            voiceLimitGroups.Add(new SerializationVoiceLimitGroupTable
+            {
+                VoiceLimitGroupName = "slide",
                 VoiceLimitGroupNum = 1
             });
 
@@ -83,8 +90,6 @@ namespace SoundBankConverter
                         string synthTrackPath = $"Synth/{soundBankName}/{instrumentName}";
                         string soundElementPath = $"Synth/{soundBankName}/{soundName}_aif";
 
-                        bool setVoiceLimitGroup = sampleBank == "sfx_4";
-
                         // Create cue sheet data.
                         var synthSoundElement = new SerializationSynthTable
                         {
@@ -95,10 +100,14 @@ namespace SoundBankConverter
                             Pan3dVolumeOffset = 1000,
                         };
 
-                        if (setVoiceLimitGroup)
+                        if (sampleBank == "sfx_4")
+                        {
+                            synthSoundElement.VoiceLimitGroupName = "slide";
+                            synthSoundElement.VoiceLimitType = 1;
+                        }
+                        else if (soundName.Contains("mario"))
                         {
                             synthSoundElement.VoiceLimitGroupName = "mario";
-                            synthSoundElement.VoiceLimitType = 1;
                         }
 
                         var synthTrack = new SerializationSynthTable
