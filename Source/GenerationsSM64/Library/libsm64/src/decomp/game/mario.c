@@ -69,6 +69,10 @@ s32 is_anim_past_end(struct MarioState *m) {
  * Sets Mario's animation without any acceleration, running at its default rate.
  */
 s16 set_mario_animation(struct MarioState *m, s32 targetAnimID) {
+    if (m->animation->locked) {
+        return 0;
+    }
+
     struct Object *o = m->marioObj;
 
     load_mario_animation(m->animation, targetAnimID);
@@ -103,6 +107,10 @@ s16 set_mario_animation(struct MarioState *m, s32 targetAnimID) {
  * slowed down via acceleration.
  */
 s16 set_mario_anim_with_accel(struct MarioState *m, s32 targetAnimID, s32 accel) {
+    if (m->animation->locked) {
+        return 0;
+    }
+
     struct Object *o = m->marioObj;
 
     load_mario_animation(m->animation, targetAnimID);
@@ -139,6 +147,10 @@ s16 set_mario_anim_with_accel(struct MarioState *m, s32 targetAnimID, s32 accel)
  * Sets the animation to a specific "next" frame from the frame given.
  */
 void set_anim_to_frame(struct MarioState *m, s16 animFrame) {
+    if (m->animation->locked) {
+        return;
+    }
+
     struct AnimInfo *animInfo = &m->marioObj->header.gfx.animInfo;
     struct Animation *curAnim = animInfo->curAnim;
 
@@ -797,7 +809,9 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
             break;
 
         case ACT_BACKFLIP:
-            m->marioObj->header.gfx.animInfo.animID = -1;
+            if (!m->animation->locked) {
+                m->marioObj->header.gfx.animInfo.animID = -1;
+            }
             m->forwardVel = -16.0f;
             set_mario_y_vel_based_on_fspeed(m, 62.0f, 0.0f);
             break;
@@ -829,7 +843,9 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
 
         case ACT_JUMP:
         case ACT_HOLD_JUMP:
-            m->marioObj->header.gfx.animInfo.animID = -1;
+            if (!m->animation->locked) {
+                m->marioObj->header.gfx.animInfo.animID = -1;
+            }
             set_mario_y_vel_based_on_fspeed(m, 42.0f, 0.25f);
             m->forwardVel *= 0.8f;
             break;
@@ -850,7 +866,9 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
             break;
 
         case ACT_STEEP_JUMP:
-            m->marioObj->header.gfx.animInfo.animID = -1;
+            if (!m->animation->locked) {
+                m->marioObj->header.gfx.animInfo.animID = -1;
+            }
             set_mario_y_vel_based_on_fspeed(m, 42.0f, 0.25f);
             m->faceAngle[0] = -0x2000;
             break;
@@ -870,7 +888,9 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
             break;
 
         case ACT_LONG_JUMP:
-            m->marioObj->header.gfx.animInfo.animID = -1;
+            if (!m->animation->locked) {
+                m->marioObj->header.gfx.animInfo.animID = -1;
+            }
             set_mario_y_vel_based_on_fspeed(m, 30.0f, 0.0f);
             m->marioObj->oMarioLongJumpIsSlow = m->forwardVel > 16.0f ? FALSE : TRUE;
 

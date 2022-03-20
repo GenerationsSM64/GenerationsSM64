@@ -1627,7 +1627,9 @@ s32 act_jump_kick(struct MarioState *m) {
 
     if (m->actionState == 0) {
         play_sound_if_no_flag(m, SOUND_MARIO_PUNCH_HOO, MARIO_ACTION_SOUND_PLAYED);
-        m->marioObj->header.gfx.animInfo.animID = -1;
+        if (!m->animation->locked) {
+            m->marioObj->header.gfx.animInfo.animID = -1;
+        }
         set_mario_animation(m, MARIO_ANIM_AIR_KICK);
         m->actionState = 1;
     }

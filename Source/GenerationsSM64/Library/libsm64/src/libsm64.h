@@ -75,6 +75,8 @@ extern void sm64_mario_set_position( int32_t marioId, float x, float y, float z 
 extern void sm64_mario_set_velocity( int32_t marioId, float x, float y, float z, float forwardVel );
 extern void sm64_mario_set_health( int32_t marioId, int16_t health );
 extern void sm64_mario_set_face_angle(int32_t marioId, float x, float y, float z);
+extern void sm64_mario_set_animation(int32_t marioId, int32_t animationID);
+extern void sm64_mario_set_animation_lock(int32_t marioId, uint32_t locked);
 
 extern uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject );
 extern void sm64_surface_object_move( uint32_t objectId, const struct SM64ObjectTransform *transform );

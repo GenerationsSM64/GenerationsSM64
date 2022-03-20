@@ -66,13 +66,19 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	hh::math::CQuaternion rotation;
 	hh::math::CVector velocity;
 
-	// Give the control back to Sonic if:
-	// - Out of control is enabled.
-	// - Sonic is grinding.
-	// Otherwise, set the position and velocity.
+	const auto& stateName = player->m_StateMachine.GetCurrentState()->GetStateName();
+
 	const bool controlSonic =
 		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl] ||
-		strstr(player->m_StateMachine.GetCurrentState()->GetStateName().c_str(), "Grind");
+		stateName == "HangOn" ||
+		strstr(stateName.c_str(), "ExternalControl") ||
+		stateName == "SpecialJump" ||
+		strstr(stateName.c_str(), "Homing") ||
+		strstr(stateName.c_str(), "Grind");
+
+	DebugDrawText::log(format("State: %s", player->m_StateMachine.GetCurrentState()->GetStateName().c_str()));
+
+	float animOffset = 0.0f;
 
 	if (controlSonic)
 	{
@@ -97,6 +103,50 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		customTransform = Eigen::Translation3f(position * 100.0f) * rotation;
 		useCustomTransform = true;
+
+		const auto& animName = playerContext->GetCurrentAnimationName();
+
+		DebugDrawText::log(format("Animation: %s", animName.c_str()));
+
+		int animId = -1;
+
+		if (animName == "JumpBall" || animName == "SpinAttack")
+			animId = MARIO_ANIM_FORWARD_SPINNING;
+
+		else if (animName == "UpReelStart")
+		{
+			animId = MARIO_ANIM_FAST_LEDGE_GRAB;
+			animOffset = 1.0f;
+		}
+
+		else if (animName == "UpReelLoop")
+		{
+			animId = MARIO_ANIM_IDLE_ON_LEDGE;
+			animOffset = 1.0f;
+		}
+
+		else if (strstr(animName.c_str(), "HomingAttackAfter"))
+			animId = MARIO_ANIM_FAST_LONGJUMP;
+
+		else if (strstr(animName.c_str(), "GrindSide"))
+			animId = MARIO_ANIM_FORWARD_SPINNING_FLIP;
+
+		else if (strstr(animName.c_str(), "GrindQuickJump"))
+			animId = MARIO_ANIM_JUMP_RIDING_SHELL;
+
+		else if (strstr(animName.c_str(), "GrindSquat"))
+			animId = MARIO_ANIM_BEND_KNESS_RIDING_SHELL;
+
+		else if (strstr(animName.c_str(), "Grind"))
+			animId = MARIO_ANIM_RIDING_SHELL;
+
+		if (animId >= 0)
+		{
+			sm64_mario_set_animation_lock(mario, true);
+			sm64_mario_set_animation(mario, animId);
+		}
+		else
+			sm64_mario_set_animation_lock(mario, false);
 	}
 
 	else
@@ -107,6 +157,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		player->m_spContext->m_spMatrixNode->NotifyChanged();
 
 		useCustomTransform = false;
+
+		sm64_mario_set_animation_lock(mario, false);
 	}
 
 	const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
@@ -169,7 +221,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	for (size_t i = 0; i < (size_t)buffers.numTrianglesUsed * 3; i++)
 	{
 		vertices[i].position[0] = buffers.position[i * 3 + 0] * 0.01f - position.x();
-		vertices[i].position[1] = buffers.position[i * 3 + 1] * 0.01f - position.y();
+		vertices[i].position[1] = buffers.position[i * 3 + 1] * 0.01f - position.y() + animOffset;
 		vertices[i].position[2] = buffers.position[i * 3 + 2] * 0.01f - position.z();
 
 		memcpy(vertices[i].color, &buffers.color[i * 3], sizeof(vertices[i].color));

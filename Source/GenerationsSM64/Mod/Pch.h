@@ -19,3 +19,4 @@
 
 #include <libsm64/src/libsm64.h>
 #include <libsm64/src/decomp/engine/surface_collision.h>
+#include <libsm64/src/decomp/include/mario_animation_ids.h>

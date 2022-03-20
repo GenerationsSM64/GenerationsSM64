@@ -284,6 +284,36 @@ void sm64_mario_set_face_angle(int32_t marioId, float x, float y, float z)
     gMarioState->faceAngle[2] = sz < -32768 ? -32768 : sz > 32767 ? 32767 : sz;
 }
 
+void sm64_mario_set_animation(int32_t marioId, int32_t animationID)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
+    {
+        DEBUG_PRINT("Tried to set animation of non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+
+    u32 tmp = gMarioState->animation->locked;
+    gMarioState->animation->locked = FALSE;
+    set_mario_animation(gMarioState, animationID);
+    gMarioState->animation->locked = tmp;
+}
+
+void sm64_mario_set_animation_lock(int32_t marioId, uint32_t locked)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
+    {
+        DEBUG_PRINT("Tried to set animation lock of non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+
+    gMarioState->animation->locked = locked;
+}
+
+
 uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject )
 {
     uint32_t id = surfaces_load_object( surfaceObject );
