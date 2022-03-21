@@ -1,8 +1,5 @@
 #include "Mod.h"
 
-#define DEBUG_DRAW_TEXT_DLL_IMPORT
-#include "../../GenerationsParameterEditor/Include/DebugDrawText.h"
-
 boost::shared_ptr<Hedgehog::Sound::CSoundHandle> soundHandles[16];
 int soundHandleCues[_countof(soundHandles)];
 bool soundHandleFlags[_countof(soundHandles)];
@@ -186,12 +183,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
 		const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
 
-		auto direction = camera->m_MyCamera.m_Direction;
-		direction.y() = 0.0f;
-		direction.normalize();
-
-		inputs.camLookX = direction.x();
-		inputs.camLookZ = -direction.z();
+		inputs.camLookX = -camera->m_MyCamera.m_Direction.x();
+		inputs.camLookZ = -camera->m_MyCamera.m_Direction.z();
 		inputs.stickX = padState.LeftStickHorizontal;
 		inputs.stickY = padState.LeftStickVertical;
 		inputs.buttonA = padState.IsDown(Sonic::eKeyState_A);
@@ -329,6 +322,41 @@ HOOK(void, __fastcall, ProcMsgSetPosition, 0xE772D0, Sonic::Player::CPlayer* Thi
 	originalProcMsgSetPosition(This, Edx, msgSetPosition);
 }
 
+constexpr double DEAD_ZONE = 0.3;
+
+HOOK(void, __cdecl, SetSticks, 0x9C6AE0, char* data, short lowerBound, short upperBound)
+{
+	double x = (double)*(short*)(data + 8) / 32767.0;
+	double y = (double)*(short*)(data + 10) / 32767.0;
+
+	const double norm = sqrt(x * x + y * y);
+
+	if (norm < DEAD_ZONE)
+	{
+		x = 0.0;
+		y = 0.0;
+	}
+	else
+	{
+		const double newNorm = max(0, norm - DEAD_ZONE) / (1.0 - DEAD_ZONE);
+
+		x /= norm;
+		x *= newNorm;
+
+		y /= norm;
+		y *= newNorm;
+
+		if (x > 1.0) x = 1.0;
+		else if (x < -1.0) x = -1.0;
+
+		if (y > 1.0) y = 1.0;
+		else if (y < -1.0) y = -1.0;
+	}
+
+	*(float*)data = (float)x;
+	*(float*)(data + 4) = (float)y;
+}
+
 void initMario()
 {
 	INSTALL_HOOK(CGameplayFlowStageOnExit);
@@ -336,6 +364,7 @@ void initMario()
 	INSTALL_HOOK(CSonicClassicUpdateParallel);
 	INSTALL_HOOK(CPlayerAddCallback);
 	INSTALL_HOOK(ProcMsgSetPosition);
+	INSTALL_HOOK(SetSticks);
 
 	buffers.position = new float[9 * SM64_GEO_MAX_TRIANGLES];
 	buffers.color = new float[9 * SM64_GEO_MAX_TRIANGLES];

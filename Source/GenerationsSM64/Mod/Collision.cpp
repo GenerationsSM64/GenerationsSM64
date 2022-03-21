@@ -105,6 +105,37 @@ extern "C" Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight)
 		*pheight = -limit;
 	}
 
+	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	if (playerContext)
+	{
+		switch (playerContext->m_Field164)
+		{
+		case 2: // Water
+		case 11:
+		case 14:
+			surface->terrain = TERRAIN_WATER;
+			break;
+
+		case 3: // Rock
+			surface->terrain = TERRAIN_STONE;
+			break;
+
+		case 4: // Dirt
+		case 9: // Sand
+			surface->terrain = TERRAIN_GRASS;
+			break;
+
+		case 5: // Wood
+			surface->terrain = TERRAIN_SPOOKY;
+			break;
+
+		case 6: // Grass
+			surface->terrain = TERRAIN_GRASS;
+			surface->type = SURFACE_NOISE_DEFAULT;
+			break;
+		}
+	}
+
 	return surface;
 }
 

@@ -187,7 +187,7 @@ void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, str
 
     gMarioState->area->camera->yaw = atan2s( inputs->camLookZ, inputs->camLookX );
 
-    gController.stickX = -64.0f * inputs->stickX;
+    gController.stickX = 64.0f * inputs->stickX;
     gController.stickY = 64.0f * inputs->stickY;
     gController.stickMag = sqrtf( gController.stickX*gController.stickX + gController.stickY*gController.stickY );
 
