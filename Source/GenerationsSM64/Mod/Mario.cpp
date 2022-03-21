@@ -3,11 +3,24 @@
 #define DEBUG_DRAW_TEXT_DLL_IMPORT
 #include "../../GenerationsParameterEditor/Include/DebugDrawText.h"
 
+boost::shared_ptr<Hedgehog::Sound::CSoundHandle> soundHandles[16];
+int soundHandleCues[_countof(soundHandles)];
+bool soundHandleFlags[_countof(soundHandles)];
+
 extern "C" void bb_play_sound(s32 soundBits, f32* pos)
 {
 	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	if (playerContext)
-		playerContext->PlaySound(soundBits & 0xF0FF0000, false);
+	{
+		const size_t cue = soundBits & 0xF0FF0000;
+		const size_t bank = soundBits >> 28;
+
+		if (cue != soundHandleCues[bank])
+			soundHandles[bank] = playerContext->PlaySound(cue, false);
+
+		soundHandleCues[bank] = cue;
+		soundHandleFlags[bank] = true;
+	}
 }
 
 hh::math::CMatrix customTransform;
@@ -161,6 +174,11 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		sm64_mario_set_animation_lock(mario, false);
 	}
 
+	// Clear sound handle flags. If Mario sets them,
+	// that means the sound handle should stay.
+	// See bb_play_sound above.
+	memset(soundHandleFlags, 0, sizeof(soundHandleFlags));
+
 	const bool update = updateInfo.DeltaTime >= 1.0f / 45.0f || (updateInfo.Frame & 1) == 0;
 	if (update)
 	{
@@ -183,6 +201,16 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			sm64_mario_toggle_wing_cap(mario);
 
 		sm64_mario_tick(mario, &inputs, &state, &buffers);
+	}
+
+	// Clear any sound handles that aren't persistent.
+	for (size_t i = 0; i < _countof(soundHandles); i++)
+	{
+		if (soundHandleFlags[i]) // This sound handle should stay.
+			continue;
+
+		soundHandles[i].reset();
+		soundHandleCues[i] = -1;
 	}
 
 	sm64_mario_set_health(mario, 0x500); // For now.

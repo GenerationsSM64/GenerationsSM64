@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CsbBuilder.Serialization;
+using NAudio.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using Newtonsoft.Json;
@@ -17,6 +18,7 @@ using VGAudio.Containers;
 using VGAudio.Containers.Adx;
 using VGAudio.Containers.Wave;
 using VGAudio.Formats;
+using VGAudio.Formats.Pcm16;
 
 namespace SoundBankConverter
 {
@@ -39,6 +41,7 @@ namespace SoundBankConverter
             var cueList = new List<SerializationCueTable>();
             var synthMap = new Dictionary<long, SerializationSynthTable>();
             var synthList = new List<SerializationSynthTable>();
+            var loopedSynths = new HashSet<SerializationSynthTable>();
             var soundElementList = new List<SerializationSoundElementTable>();
             var voiceLimitGroups = new List<SerializationVoiceLimitGroupTable>();
 
@@ -46,13 +49,6 @@ namespace SoundBankConverter
             voiceLimitGroups.Add(new SerializationVoiceLimitGroupTable
             {
                 VoiceLimitGroupName = "mario",
-                VoiceLimitGroupNum = 1
-            });
-
-            // Create default voice limit group for the slide SFX
-            voiceLimitGroups.Add(new SerializationVoiceLimitGroupTable
-            {
-                VoiceLimitGroupName = "slide",
                 VoiceLimitGroupNum = 1
             });
 
@@ -100,15 +96,9 @@ namespace SoundBankConverter
                             Pan3dVolumeOffset = 1000,
                         };
 
-                        if (sampleBank == "sfx_4")
-                        {
-                            synthSoundElement.VoiceLimitGroupName = "slide";
-                            synthSoundElement.VoiceLimitType = 1;
-                        }
-                        else if (soundName.Contains("mario"))
-                        {
+
+                        if (soundName.Contains("mario")) 
                             synthSoundElement.VoiceLimitGroupName = "mario";
-                        }
 
                         var synthTrack = new SerializationSynthTable
                         {
@@ -130,44 +120,122 @@ namespace SoundBankConverter
                             continue;
 
                         // Load sample AIFF.
-                        using (var aiffReader = new AiffFileReader(Path.Combine(args[0], "samples", sampleBank, soundName + ".aiff")))
+                        var bytes = File.ReadAllBytes(Path.Combine(args[0], "samples", sampleBank,
+                            soundName + ".aiff"));
+
+                        int ReadInt32BE(int offset)
                         {
-                            using (var waveMemoryStream = new MemoryStream())
+                            return bytes[offset] << 24 | bytes[offset + 1] << 16 | bytes[offset + 2] << 8 |
+                                   bytes[offset + 3];
+                        }
+
+                        // Extract loop points, if they exist.
+                        int loopStart = 0;
+                        int loopEnd = 0;
+
+                        if (ReadInt32BE(0x26) == 0x4D41524B) // MARK
+                        {
+                            loopStart = ReadInt32BE(0x32);
+                            loopEnd = ReadInt32BE(0x3E);
+                        }
+
+                        const int targetSampleRate = 48000;
+
+                        // Read AIFF data.
+                        List<short>[] channelList;
+
+                        using (var reader = new AiffFileReader(new MemoryStream(bytes)))
+                        using (var resampler = new MediaFoundationResampler(reader, targetSampleRate) {ResamplerQuality = 60})
+                        {
+                            // Resize loop start/end points.
+                            void Resize(ref int value)
                             {
-                                using (var resampler = new MediaFoundationResampler(aiffReader, 32000) { ResamplerQuality = 60 })
-                                    WaveFileWriter.WriteWavFileToStream(waveMemoryStream, resampler);
+                                value = value * resampler.WaveFormat.SampleRate / reader.WaveFormat.SampleRate;
+                            }
 
-                                using (var adxMemoryStream = new MemoryStream())
+                            Resize(ref loopStart);
+                            Resize(ref loopEnd);
+
+                            channelList = new List<short>[resampler.WaveFormat.Channels];
+
+                            for (int i = 0; i < channelList.Length; i++)
+                                channelList[i] = new List<short>();
+
+                            var samples = new byte[resampler.WaveFormat.AverageBytesPerSecond];
+
+                            while (true)
+                            {
+                                int length = resampler.Read(samples, 0, samples.Length);
+
+                                if (length == 0)
+                                    break;
+
+                                // Load into VGAudio compatible channel data.
+                                for (int i = 0; i < length; i += sizeof(short) * channelList.Length)
                                 {
-                                    var waveReader = new WaveReader();
-                                    var adxWriter = new AdxWriter();
-                                    var audioData = waveReader.Read(waveMemoryStream.ToArray());
-
-                                    adxWriter.WriteToStream(audioData, adxMemoryStream, new AdxConfiguration());
-                                    
-                                    // Create AAX.
-                                    var aaxArchive = new CriAaxArchive
-                                    {
-                                        Mode = CriAaxArchiveMode.Adx
-                                    };
-
-                                    aaxArchive.Add(new CriAaxEntry
-                                        { Flag = CriAaxEntryFlag.Intro, Data = adxMemoryStream.ToArray() });
-
-                                    var audioFormat = audioData.GetAllFormats().First();
-
-                                    soundElementList.Add(new SerializationSoundElementTable
-                                    {
-                                        Name = soundElementPath,
-                                        Data = aaxArchive.Save(),
-                                        FormatType = (byte)aaxArchive.Mode,
-                                        SoundFrequency = (uint)audioFormat.SampleRate,
-                                        NumberChannels = (byte)audioFormat.ChannelCount,
-                                        NumberSamples = (uint)audioFormat.SampleCount
-                                    });
+                                    for (int j = 0; j < channelList.Length; j++)
+                                        channelList[j].Add((short)(samples[i + j * sizeof(short) + 0] |
+                                                                   samples[i + j * sizeof(short) + 1] << 8));
                                 }
                             }
                         }
+
+                        byte[] EncodeAudio(int start, int end)
+                        {
+                            if (end == 0)
+                                end = channelList[0].Count;
+
+                            var channelArray = new short[channelList.Length][];
+                            int count = end - start; // TODO: Inclusive or exclusive?
+
+                            for (int i = 0; i < channelList.Length; i++)
+                            {
+                                channelArray[i] = new short[count];
+                                channelList[i].CopyTo(start, channelArray[i], 0, count);
+                            }
+
+                            var audioData = new AudioData(new Pcm16Format(channelArray, targetSampleRate));
+                            var adxWriter = new AdxWriter();
+
+                            using (var memoryStream = new MemoryStream())
+                            {
+                                adxWriter.WriteToStream(audioData, memoryStream);
+                                return memoryStream.ToArray();
+                            }
+                        }
+
+                        // Create AAX.
+                        var aaxArchive = new CriAaxArchive
+                        {
+                            Mode = CriAaxArchiveMode.Adx
+                        };
+
+                        // Add intro.
+                        if (loopStart > 0 || loopEnd == 0)
+                        {
+                            aaxArchive.Add(new CriAaxEntry
+                                { Flag = CriAaxEntryFlag.Intro, Data = EncodeAudio(0, loopStart) });
+                        }
+
+                        // Add loop.
+                        if (loopEnd > 0)
+                        {
+                            aaxArchive.Add(new CriAaxEntry
+                                { Flag = CriAaxEntryFlag.Loop, Data = EncodeAudio(loopStart, loopEnd) });
+
+                            loopedSynths.Add(synthTrack);
+                        }
+
+                        // Save AAX and add sound element.
+                        soundElementList.Add(new SerializationSoundElementTable
+                        {
+                            Name = soundElementPath,
+                            SoundFrequency = targetSampleRate,
+                            NumberChannels = (byte)channelList.Length,
+                            NumberSamples = (uint)channelList[0].Count,
+                            Data = aaxArchive.Save(),
+                            FormatType = (byte)aaxArchive.Mode,
+                        });
                     }
 
                     ++bankIndex;
@@ -281,6 +349,7 @@ namespace SoundBankConverter
                             Id = (uint)((channelIndex << 28) | (soundIndex << 16)),
                             Name = $"mario{cueList.Count}",
                             SynthPath = synth.SynthName,
+                            Flags = (byte)(loopedSynths.Contains(synth) ? 1 : 0)
                         });
 
                         ++soundIndex;
