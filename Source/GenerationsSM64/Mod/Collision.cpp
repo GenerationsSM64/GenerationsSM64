@@ -1,5 +1,7 @@
+#include "Mod.h"
+
 bool rayCast(hh::math::CVector const& begin, hh::math::CVector const& end,
-	hh::math::CVector& position, hh::math::CVector& normal, uint32_t filter
+             hh::math::CVector& position, hh::math::CVector& normal, uint32_t filter
 )
 {
 	static void* const pFunc = (void*)0x10BE3B0;
@@ -108,17 +110,19 @@ extern "C" Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight)
 
 extern "C" s32 bb_find_wall_collisions(struct WallCollisionData* data)
 {
-	static const hh::math::CVector directions[] =
-	{
-		-hh::math::CVector::UnitX(),
-		hh::math::CVector::UnitX(),
-		-hh::math::CVector::UnitZ(),
-		hh::math::CVector::UnitZ(),
+	hh::math::CQuaternion orientation;
+	orientation = Eigen::AngleAxisf(state.faceAngle, Eigen::Vector3f::UnitY());
 
-		hh::math::CVector(0.707f, 0, 0.707f),
-		hh::math::CVector(0.707f, 0, -0.707f),
-		hh::math::CVector(-0.707f, 0, 0.707f),
-		hh::math::CVector(-0.707f, 0, -0.707f),
+	const hh::math::CVector directions[] =
+	{
+		orientation * -hh::math::CVector::UnitX(),
+		orientation * hh::math::CVector::UnitX(),
+		orientation * -hh::math::CVector::UnitZ(),
+		orientation * hh::math::CVector::UnitZ(),
+		orientation * hh::math::CVector(0.707f, 0, 0.707f),
+		orientation * hh::math::CVector(0.707f, 0, -0.707f),
+		orientation * hh::math::CVector(-0.707f, 0, 0.707f),
+		orientation * hh::math::CVector(-0.707f, 0, -0.707f),
 	};
 
 	data->numWalls = 0;

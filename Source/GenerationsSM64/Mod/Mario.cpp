@@ -87,7 +87,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		strstr(stateName.c_str(), "ExternalControl") ||
 		stateName == "SpecialJump" ||
 		strstr(stateName.c_str(), "Homing") ||
-		strstr(stateName.c_str(), "Grind");
+		strstr(stateName.c_str(), "Grind") ||
+		stateName == "JumpSpring";
 
 	DebugDrawText::log(format("State: %s", player->m_StateMachine.GetCurrentState()->GetStateName().c_str()));
 
@@ -190,9 +191,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		direction.normalize();
 
 		inputs.camLookX = direction.x();
-		inputs.camLookZ = direction.z();
+		inputs.camLookZ = -direction.z();
 		inputs.stickX = padState.LeftStickHorizontal;
-		inputs.stickY = -padState.LeftStickVertical;
+		inputs.stickY = padState.LeftStickVertical;
 		inputs.buttonA = padState.IsDown(Sonic::eKeyState_A);
 		inputs.buttonB = padState.IsDown(Sonic::eKeyState_X);
 		inputs.buttonZ = padState.IsDown(Sonic::eKeyState_LeftTrigger) || padState.IsDown(Sonic::eKeyState_RightTrigger);
