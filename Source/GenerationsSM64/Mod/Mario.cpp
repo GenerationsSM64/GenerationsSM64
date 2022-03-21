@@ -161,25 +161,29 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		sm64_mario_set_animation_lock(mario, false);
 	}
 
-	const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
-	const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
-
-	auto direction = camera->m_MyCamera.m_Direction;
-	direction.y() = 0.0f;
-	direction.normalize();
-
-	inputs.camLookX = direction.x();
-	inputs.camLookZ = direction.z();
-	inputs.stickX = padState.LeftStickHorizontal;
-	inputs.stickY = -padState.LeftStickVertical;
-	inputs.buttonA = padState.IsDown(Sonic::eKeyState_A) || padState.IsDown(Sonic::eKeyState_B);
-	inputs.buttonB = padState.IsDown(Sonic::eKeyState_X) || padState.IsDown(Sonic::eKeyState_Y);
-	inputs.buttonZ = padState.IsDown(Sonic::eKeyState_LeftTrigger) || padState.IsDown(Sonic::eKeyState_RightTrigger);
-
 	const bool update = updateInfo.DeltaTime >= 1.0f / 45.0f || (updateInfo.Frame & 1) == 0;
-
 	if (update)
+	{
+		const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
+		const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
+
+		auto direction = camera->m_MyCamera.m_Direction;
+		direction.y() = 0.0f;
+		direction.normalize();
+
+		inputs.camLookX = direction.x();
+		inputs.camLookZ = direction.z();
+		inputs.stickX = padState.LeftStickHorizontal;
+		inputs.stickY = -padState.LeftStickVertical;
+		inputs.buttonA = padState.IsDown(Sonic::eKeyState_A);
+		inputs.buttonB = padState.IsDown(Sonic::eKeyState_X);
+		inputs.buttonZ = padState.IsDown(Sonic::eKeyState_LeftTrigger) || padState.IsDown(Sonic::eKeyState_RightTrigger);
+
+		if (padState.IsTapped(Sonic::eKeyState_Y))
+			sm64_mario_toggle_wing_cap(mario);
+
 		sm64_mario_tick(mario, &inputs, &state, &buffers);
+	}
 
 	sm64_mario_set_health(mario, 0x500); // For now.
 

@@ -313,6 +313,30 @@ void sm64_mario_set_animation_lock(int32_t marioId, uint32_t locked)
     gMarioState->animation->locked = locked;
 }
 
+void sm64_mario_toggle_wing_cap(int32_t marioId)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
+    {
+        DEBUG_PRINT("Tried to set wing cap of non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+
+    if (gMarioState->capTimer > 10) {
+        gMarioState->capTimer = 10;
+    }
+    else if ((gMarioState->action & ACT_FLAG_IDLE) || gMarioState->action == ACT_WALKING) {
+        gMarioState->flags &= ~MARIO_CAP_ON_HEAD & ~MARIO_CAP_IN_HAND;
+        gMarioState->flags |= MARIO_WING_CAP;
+        gMarioState->capTimer = ~0;
+        gMarioState->flags |= MARIO_CAP_IN_HAND;
+        set_mario_action(gMarioState, ACT_PUTTING_ON_CAP, 0);
+
+        play_sound(SOUND_MENU_STAR_SOUND, gMarioState->marioObj->header.gfx.cameraToObject);
+        play_sound(SOUND_MARIO_HERE_WE_GO, gMarioState->marioObj->header.gfx.cameraToObject);
+    }
+}
 
 uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject )
 {
