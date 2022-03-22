@@ -132,6 +132,9 @@ struct AnimInfo
     /*0x0A 0x42*/ u16 animTimer;
     /*0x0C 0x44*/ s32 animFrameAccelAssist;
     /*0x10 0x48*/ s32 animAccel;
+    s16 prevAnimID;
+    struct Animation* prevAnim;
+    s16 prevAnimFrame;
 };
 
 struct GraphNodeObject
@@ -147,6 +150,12 @@ struct GraphNodeObject
     /*0x4C*/ struct SpawnInfo *unk4C;
     /*0x50*/ Mat4 *throwMatrix; // matrix ptr
     /*0x54*/ Vec3f cameraToObject;
+
+    Vec3s prevAngle;
+    Vec3f prevPos;
+    Vec3f prevScale;
+    Mat4 prevThrowMatrix;
+    u8 hasPrevThrowMatrix;
 };
 
 struct ObjectNode
@@ -364,6 +373,10 @@ struct MarioState
     /*0xC4*/ f32 unkC4;
 
     u16 curTerrain; // libsm64: added field
+
+    Vec3f prevPos;
+    Vec3f prevVel;
+    Vec3s prevFaceAngle;
 };
 
 #endif // TYPES_H

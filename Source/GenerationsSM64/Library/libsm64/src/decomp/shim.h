@@ -5,6 +5,7 @@
 #include "game/level_update.h"
 #include "../libsm64.h"
 #include "global_state.h"
+#include "../interpolation.h"
 
 #define COURSE_MIN    0
 #define COURSE_MAX   14

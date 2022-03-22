@@ -120,6 +120,9 @@
     <ClCompile Include="src\obj_pool.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\interpolation.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\decomp\engine\geo_layout.h">
@@ -300,6 +303,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\obj_pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interpolation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

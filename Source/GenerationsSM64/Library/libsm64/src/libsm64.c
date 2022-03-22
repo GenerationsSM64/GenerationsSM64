@@ -168,6 +168,8 @@ int32_t sm64_mario_create( float x, float y, float z )
     set_mario_action( gMarioState, ACT_SPAWN_SPIN_AIRBORNE, 0);
     find_floor( x, y, z, &gMarioState->floor );
 
+    set_interpolation_interval(2);
+
     return marioIndex;
 }
 
@@ -181,30 +183,59 @@ void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, str
 
     global_state_bind( ((struct MarioInstance *)s_mario_instance_pool.objects[ marioId ])->globalState );
 
-    update_button( inputs->buttonA, A_BUTTON );
-    update_button( inputs->buttonB, B_BUTTON );
-    update_button( inputs->buttonZ, Z_TRIG );
+    outState->update = get_interpolation_should_update();
 
-    gMarioState->area->camera->yaw = atan2s( inputs->camLookZ, inputs->camLookX );
+    if (outState->update) {
+        vec3f_copy(gMarioState->prevPos, gMarioState->pos);
+        vec3f_copy(gMarioState->prevVel, gMarioState->vel);
+        vec3s_copy(gMarioState->prevFaceAngle, gMarioState->faceAngle);
 
-    gController.stickX = 64.0f * inputs->stickX;
-    gController.stickY = 64.0f * inputs->stickY;
-    gController.stickMag = sqrtf( gController.stickX*gController.stickX + gController.stickY*gController.stickY );
+        vec3s_copy(gMarioObject->header.gfx.prevAngle, gMarioObject->header.gfx.angle);
+        vec3f_copy(gMarioObject->header.gfx.prevPos, gMarioObject->header.gfx.pos);
+        vec3f_copy(gMarioObject->header.gfx.prevScale, gMarioObject->header.gfx.scale);
 
-    apply_mario_platform_displacement();
-    bhv_mario_update();
-    update_mario_platform(); // TODO platform grabbed here and used next tick could be a use-after-free
+        gMarioObject->header.gfx.hasPrevThrowMatrix = gMarioObject->header.gfx.throwMatrix != NULL;
 
-    gfx_adapter_bind_output_buffers( outBuffers );
+        if (gMarioObject->header.gfx.hasPrevThrowMatrix)
+            mtxf_copy(gMarioObject->header.gfx.prevThrowMatrix, *gMarioObject->header.gfx.throwMatrix);
 
-    geo_process_root_hack_single_node( s_mario_graph_node );
+        gMarioObject->header.gfx.throwMatrix = NULL;
 
-    gAreaUpdateCounter++;
+        update_button(inputs->buttonA | g_state->mButtonA, A_BUTTON);
+        update_button(inputs->buttonB | g_state->mButtonB, B_BUTTON);
+        update_button(inputs->buttonZ | g_state->mButtonZ, Z_TRIG);
 
-    outState->health = gMarioState->health;
-    vec3f_copy( outState->position, gMarioState->pos );
-    vec3f_copy( outState->velocity, gMarioState->vel );
-    outState->faceAngle = (float)gMarioState->faceAngle[1] / 32768.0f * M_PI;
+        g_state->mButtonA = FALSE;
+        g_state->mButtonB = FALSE;
+        g_state->mButtonZ = FALSE;
+
+        gMarioState->area->camera->yaw = atan2s(inputs->camLookZ, inputs->camLookX);
+
+        gController.stickX = 64.0f * inputs->stickX;
+        gController.stickY = 64.0f * inputs->stickY;
+        gController.stickMag = sqrtf(gController.stickX * gController.stickX + gController.stickY * gController.stickY);
+
+        apply_mario_platform_displacement();
+        bhv_mario_update();
+        update_mario_platform(); // TODO platform grabbed here and used next tick could be a use-after-free
+    }
+    else {
+        g_state->mButtonA = inputs->buttonA;
+        g_state->mButtonB = inputs->buttonB;
+        g_state->mButtonZ = inputs->buttonZ;
+    }
+
+    vec3f_interpolate( outState->position, gMarioState->prevPos, gMarioState->pos );
+    vec3f_interpolate( outState->velocity, gMarioState->prevVel, gMarioState->vel );
+    outState->faceAngle = s16_angle_interpolate(gMarioState->prevFaceAngle[1], gMarioState->faceAngle[1]) / 32768.0f * M_PI;
+    vec3f_interpolate(outState->gfxPosition, gMarioObject->header.gfx.prevPos, gMarioObject->header.gfx.pos);
+
+    gfx_adapter_bind_output_buffers(outBuffers);
+
+    geo_process_root_hack_single_node(s_mario_graph_node);
+
+    increment_interpolation_frame();
+    gAreaUpdateCounter = get_interpolation_area_update_counter();
 }
 
 void sm64_mario_delete( int32_t marioId )

@@ -177,56 +177,55 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	// See bb_play_sound above.
 	memset(soundHandleFlags, 0, sizeof(soundHandleFlags));
 
-	const bool update = updateInfo.DeltaTime >= 1.0f / 45.0f || (updateInfo.Frame & 1) == 0;
-	if (update)
+	const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
+	const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
+
+	inputs.camLookX = -camera->m_MyCamera.m_Direction.x();
+	inputs.camLookZ = -camera->m_MyCamera.m_Direction.z();
+	inputs.stickX = padState.LeftStickHorizontal;
+	inputs.stickY = padState.LeftStickVertical;
+	inputs.buttonA = padState.IsDown(Sonic::eKeyState_A);
+	inputs.buttonB = padState.IsDown(Sonic::eKeyState_X);
+	inputs.buttonZ = padState.IsDown(Sonic::eKeyState_LeftTrigger) || padState.IsDown(Sonic::eKeyState_RightTrigger);
+
+	// Handle directional controls explicitly as sticks don't account for them.
+	const bool left = padState.IsDown(Sonic::eKeyState_DpadLeft);
+	const bool right = padState.IsDown(Sonic::eKeyState_DpadRight);
+	const bool up = padState.IsDown(Sonic::eKeyState_DpadUp);
+	const bool down = padState.IsDown(Sonic::eKeyState_DpadDown);
+
+	const bool horizontal = left ^ right;
+	const bool vertical = up ^ down;
+
+	if (horizontal || vertical)
 	{
-		const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
-		const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
+		if (horizontal) inputs.stickX = left ? -1.0f : 1.0f;
+		if (vertical) inputs.stickY = down ? -1.0f : 1.0f;
 
-		inputs.camLookX = -camera->m_MyCamera.m_Direction.x();
-		inputs.camLookZ = -camera->m_MyCamera.m_Direction.z();
-		inputs.stickX = padState.LeftStickHorizontal;
-		inputs.stickY = padState.LeftStickVertical;
-		inputs.buttonA = padState.IsDown(Sonic::eKeyState_A);
-		inputs.buttonB = padState.IsDown(Sonic::eKeyState_X);
-		inputs.buttonZ = padState.IsDown(Sonic::eKeyState_LeftTrigger) || padState.IsDown(Sonic::eKeyState_RightTrigger);
+		const float norm = sqrtf(inputs.stickX * inputs.stickX + inputs.stickY * inputs.stickY);
+		inputs.stickX /= norm;
+		inputs.stickY /= norm;
+	}
 
-		// Handle directional controls explicitly as sticks don't account for them.
-		const bool left = padState.IsDown(Sonic::eKeyState_DpadLeft);
-		const bool right = padState.IsDown(Sonic::eKeyState_DpadRight);
-		const bool up = padState.IsDown(Sonic::eKeyState_DpadUp);
-		const bool down = padState.IsDown(Sonic::eKeyState_DpadDown);
+	if (padState.IsTapped(Sonic::eKeyState_Y))
+		sm64_mario_toggle_wing_cap(mario);
 
-		const bool horizontal = left ^ right;
-		const bool vertical = up ^ down;
+	sm64_mario_tick(mario, &inputs, &state, &buffers);
 
-		if (horizontal || vertical)
+	if (state.update)
+	{
+		// Clear any sound handles that aren't persistent.
+		for (size_t i = 0; i < _countof(soundHandles); i++)
 		{
-			if (horizontal) inputs.stickX = left ? -1.0f : 1.0f;
-			if (vertical) inputs.stickY = down ? -1.0f : 1.0f;
+			if (soundHandleFlags[i]) // This sound handle should stay.
+				continue;
 
-			const float norm = sqrtf(inputs.stickX * inputs.stickX + inputs.stickY * inputs.stickY);
-			inputs.stickX /= norm;
-			inputs.stickY /= norm;
+			soundHandles[i].reset();
+			soundHandleCues[i] = -1;
 		}
 
-		if (padState.IsTapped(Sonic::eKeyState_Y))
-			sm64_mario_toggle_wing_cap(mario);
-
-		sm64_mario_tick(mario, &inputs, &state, &buffers);
+		sm64_mario_set_health(mario, 0x500); // For now.
 	}
-
-	// Clear any sound handles that aren't persistent.
-	for (size_t i = 0; i < _countof(soundHandles); i++)
-	{
-		if (soundHandleFlags[i]) // This sound handle should stay.
-			continue;
-
-		soundHandles[i].reset();
-		soundHandleCues[i] = -1;
-	}
-
-	sm64_mario_set_health(mario, 0x500); // For now.
 
 	if (!controlSonic)
 	{
@@ -265,9 +264,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	for (size_t i = 0; i < (size_t)buffers.numTrianglesUsed * 3; i++)
 	{
-		vertices[i].position[0] = buffers.position[i * 3 + 0] * 0.01f - position.x();
-		vertices[i].position[1] = buffers.position[i * 3 + 1] * 0.01f - position.y() + animOffset;
-		vertices[i].position[2] = buffers.position[i * 3 + 2] * 0.01f - position.z();
+		vertices[i].position[0] = (buffers.position[i * 3 + 0] - state.gfxPosition[0]) * 0.01f;
+		vertices[i].position[1] = (buffers.position[i * 3 + 1] - state.gfxPosition[1]) * 0.01f + animOffset;
+		vertices[i].position[2] = (buffers.position[i * 3 + 2] - state.gfxPosition[2]) * 0.01f;
 
 		memcpy(vertices[i].color, &buffers.color[i * 3], sizeof(vertices[i].color));
 		memcpy(vertices[i].normal, &buffers.normal[i * 3], sizeof(vertices[i].normal));
@@ -282,7 +281,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	vertexBuffer->Unlock();
 
-	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(position);
+	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(state.gfxPosition[0], state.gfxPosition[1], state.gfxPosition[2]) * 0.01f);
 }
 
 HOOK(void, __fastcall, CGameplayFlowStageOnExit, 0xD05360, void* This)

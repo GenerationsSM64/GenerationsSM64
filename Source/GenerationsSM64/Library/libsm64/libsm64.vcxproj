@@ -76,10 +76,10 @@
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>false</ExceptionHandling>
       <AdditionalOptions>/Ob3 %(AdditionalOptions)</AdditionalOptions>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,6 +112,7 @@
     <ClCompile Include="src\decomp\game\platform_displacement.c" />
     <ClCompile Include="src\decomp\game\rendering_graph_node.c" />
     <ClCompile Include="src\decomp\global_state.c" />
+    <ClCompile Include="src\interpolation.c" />
     <ClCompile Include="src\decomp\mario\geo.inc.c" />
     <ClCompile Include="src\decomp\mario\model.inc.c" />
     <ClCompile Include="src\decomp\memory.c" />
@@ -169,6 +170,7 @@
     <ClInclude Include="src\decomp\include\special_preset_names.h" />
     <ClInclude Include="src\decomp\include\surface_terrains.h" />
     <ClInclude Include="src\decomp\include\types.h" />
+    <ClInclude Include="src\interpolation.h" />
     <ClInclude Include="src\decomp\mario\geo.inc.h" />
     <ClInclude Include="src\decomp\mario\model.inc.h" />
     <ClInclude Include="src\decomp\memory.h" />
