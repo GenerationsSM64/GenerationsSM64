@@ -191,6 +191,25 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		inputs.buttonB = padState.IsDown(Sonic::eKeyState_X);
 		inputs.buttonZ = padState.IsDown(Sonic::eKeyState_LeftTrigger) || padState.IsDown(Sonic::eKeyState_RightTrigger);
 
+		// Handle directional controls explicitly as sticks don't account for them.
+		const bool left = padState.IsDown(Sonic::eKeyState_DpadLeft);
+		const bool right = padState.IsDown(Sonic::eKeyState_DpadRight);
+		const bool up = padState.IsDown(Sonic::eKeyState_DpadUp);
+		const bool down = padState.IsDown(Sonic::eKeyState_DpadDown);
+
+		const bool horizontal = left ^ right;
+		const bool vertical = up ^ down;
+
+		if (horizontal || vertical)
+		{
+			if (horizontal) inputs.stickX = left ? -1.0f : 1.0f;
+			if (vertical) inputs.stickY = down ? -1.0f : 1.0f;
+
+			const float norm = sqrtf(inputs.stickX * inputs.stickX + inputs.stickY * inputs.stickY);
+			inputs.stickX /= norm;
+			inputs.stickY /= norm;
+		}
+
 		if (padState.IsTapped(Sonic::eKeyState_Y))
 			sm64_mario_toggle_wing_cap(mario);
 
@@ -338,7 +357,7 @@ HOOK(void, __cdecl, SetSticks, 0x9C6AE0, char* data, short lowerBound, short upp
 	}
 	else
 	{
-		const double newNorm = max(0, norm - DEAD_ZONE) / (1.0 - DEAD_ZONE);
+		const double newNorm = min(1, max(0, norm - DEAD_ZONE) / (1.0 - DEAD_ZONE));
 
 		x /= norm;
 		x *= newNorm;
