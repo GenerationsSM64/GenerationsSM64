@@ -4,7 +4,7 @@ boost::shared_ptr<Hedgehog::Sound::CSoundHandle> soundHandles[16];
 int soundHandleCues[_countof(soundHandles)];
 bool soundHandleFlags[_countof(soundHandles)];
 
-extern "C" void bb_play_sound(s32 soundBits, f32* pos)
+extern "C" void play_sound(s32 soundBits, f32* pos)
 {
 	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	if (playerContext)
@@ -20,12 +20,12 @@ extern "C" void bb_play_sound(s32 soundBits, f32* pos)
 	}
 }
 
-hh::math::CMatrix customTransform;
-bool useCustomTransform;
+hh::math::CMatrix overrideMatrix;
+bool useOverrideMatrix;
 
-extern "C" f32* bb_get_custom_mario_transform()
+extern "C" f32* geo_get_override_matrix()
 {
-	return useCustomTransform ? customTransform.data() : nullptr;
+	return useOverrideMatrix ? overrideMatrix.data() : nullptr;
 }
 
 int32_t mario = -1;
@@ -112,8 +112,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		const float yaw = atan2(direction.x() * norm, direction.z() * norm);
 		sm64_mario_set_face_angle(mario, asin(-direction.y()), yaw, 0);
 
-		customTransform = Eigen::Translation3f(position * 100.0f) * rotation;
-		useCustomTransform = true;
+		overrideMatrix = Eigen::Translation3f(position * 100.0f) * rotation;
+		useOverrideMatrix = true;
 
 		const auto& animName = playerContext->GetCurrentAnimationName();
 
@@ -167,7 +167,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		player->m_spContext->m_spMatrixNode->m_Transform.SetRotationAndPosition(rotation, position);
 		player->m_spContext->m_spMatrixNode->NotifyChanged();
 
-		useCustomTransform = false;
+		useOverrideMatrix = false;
 
 		sm64_mario_set_animation_lock(mario, false);
 	}

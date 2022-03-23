@@ -1165,7 +1165,7 @@ void geo_process_node_and_siblings(struct GraphNode *firstNode) {
 //     }
 // }
 
-extern f32* bb_get_custom_mario_transform();
+extern f32* geo_get_override_matrix();
 
 void geo_process_root_hack_single_node(struct GraphNode *node)
 {
@@ -1187,11 +1187,12 @@ void geo_process_root_hack_single_node(struct GraphNode *node)
                 G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
 
     Mat4* throwMatrix = NULL;
-    f32* customMatrix = bb_get_custom_mario_transform();
+    f32* overrideMatrix = geo_get_override_matrix();
 
-    if (customMatrix) {
-        mtxf_copy(gMatStack[++gMatStackIndex], customMatrix);
+    if (overrideMatrix) {
+        mtxf_copy(gMatStack[++gMatStackIndex], overrideMatrix);
     }
+
     else if (gMarioObject->header.gfx.throwMatrix != NULL) {
         Vec3f currScale;
         vec3f_interpolate(currScale, gMarioObject->header.gfx.prevScale, gMarioObject->header.gfx.scale);
@@ -1208,6 +1209,7 @@ void geo_process_root_hack_single_node(struct GraphNode *node)
         throwMatrix = gMarioObject->header.gfx.throwMatrix;
         gMarioObject->header.gfx.throwMatrix = &gMatStack[++gMatStackIndex];
     }
+
     else {
         Vec3s currAngle;
         Vec3f currPos;

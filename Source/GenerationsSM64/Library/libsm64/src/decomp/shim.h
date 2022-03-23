@@ -34,9 +34,11 @@
 #define gMarioState          (&g_state->mgMarioStateVal)
 #define gAreaUpdateCounter   (g_state->mgAreaUpdateCounter)
 
-extern void bb_play_sound(s32 soundBits, f32* pos);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-static void play_sound(s32 soundBits, f32* pos) { bb_play_sound(soundBits, pos); }
+extern void play_sound(s32 soundBits, f32* pos);
 static void enable_time_stop() {}
 static void disable_time_stop() {}
 static void *segmented_to_virtual(const void *addr) { return (void*)addr; }
@@ -62,3 +64,7 @@ static void spawn_default_star(f32 sp20, f32 sp24, f32 sp28) {}
 static void play_shell_music(void) {}
 static void stop_shell_music(void) {}
 static u16 level_control_timer(s32 timerOp) { return 0; }
+
+#ifdef __cplusplus
+}
+#endif

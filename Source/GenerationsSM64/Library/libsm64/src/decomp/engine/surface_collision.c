@@ -3,11 +3,6 @@
 #include "../include/surface_terrains.h"
 #include "../../load_surfaces.h"
 
-extern struct Surface* bb_find_ceil(f32 x, f32 y, f32 z, f32* pheight);
-extern struct Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight);
-extern s32 bb_find_wall_collisions(struct WallCollisionData* data);
-extern f32 bb_find_water_level(f32 x, f32 y, f32 z);
-
 /**
  * Iterate through the list of ceilings and find the first ceiling over a given point.
  */
@@ -296,22 +291,6 @@ s32 f32_find_wall_collision(f32 *xPtr, f32 *yPtr, f32 *zPtr, f32 offsetY, f32 ra
     return numCollisions;
 }
 
-s32 find_wall_collisions(struct WallCollisionData *colData)
-{
-    s32 numCollisions = 0;
-    colData->numWalls = 0;
-
-    numCollisions += bb_find_wall_collisions(colData);
-    return numCollisions;
-}
-
-f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface **pceil)
-{
-    f32 height = CELL_HEIGHT_LIMIT;
-	*pceil = bb_find_ceil( posX, posY, posZ, &height );
-	return height;
-}
-
 struct FloorGeometry sFloorGeo;
 
 f32 find_floor_height_and_data(f32 xPos, f32 yPos, f32 zPos, struct FloorGeometry **floorGeo)
@@ -337,18 +316,6 @@ f32 find_floor_height(f32 x, f32 y, f32 z)
     f32 height = FLOOR_LOWER_LIMIT;
 	find_floor_from_list( x, y, z, &height );
 	return height;
-}
-
-f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface **pfloor)
-{
-    f32 height = FLOOR_LOWER_LIMIT;
-	*pfloor = bb_find_floor( xPos, yPos, zPos, &height );
-	return height;
-}
-
-f32 find_water_level(f32 x, f32 y, f32 z)
-{
-	return bb_find_water_level(x, y, z);
 }
 
 f32 find_poison_gas_level(f32 x, f32 z)

@@ -70,14 +70,17 @@ Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& dir
 	return surface;
 }
 
-extern "C" Surface* bb_find_ceil(f32 x, f32 y, f32 z, f32* pheight)
+extern "C" f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface** pceil)
 {
-	return rayCast(x, y, z, pheight, hh::math::CVector::UnitY()); // Cast a ray upwards.
+	f32 height = CELL_HEIGHT_LIMIT;
+	*pceil = rayCast(posX, posY, posZ, &height, hh::math::CVector::UnitY()); // Cast a ray upwards.
+	return height;
 }
 
-extern "C" Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight)
+extern "C" f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface** pfloor)
 {
-	Surface* surface = rayCast(x, y, z, pheight, -hh::math::CVector::UnitY()); // Cast a ray downwards.
+	f32 height = FLOOR_LOWER_LIMIT;
+	Surface* surface = rayCast(xPos, yPos, zPos, &height, -hh::math::CVector::UnitY()); // Cast a ray downwards.
 
 	// NULL surface is going to cause crash. Create a dummy surface instead.
 	if (!surface)
@@ -102,7 +105,7 @@ extern "C" Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight)
 		surface->normal.y = 1.0f;
 		surface->normal.z = 0.0f;
 
-		*pheight = -limit;
+		height = -limit;
 	}
 
 	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
@@ -136,10 +139,11 @@ extern "C" Surface* bb_find_floor(f32 x, f32 y, f32 z, f32* pheight)
 		}
 	}
 
-	return surface;
+	*pfloor = surface;
+	return height;
 }
 
-extern "C" s32 bb_find_wall_collisions(struct WallCollisionData* data)
+extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 {
 	hh::math::CQuaternion orientation;
 	orientation = Eigen::AngleAxisf(state.faceAngle, Eigen::Vector3f::UnitY());
@@ -191,7 +195,7 @@ extern "C" s32 bb_find_wall_collisions(struct WallCollisionData* data)
 	return data->numWalls;
 }
 
-extern "C" f32 bb_find_water_level(f32 x, f32 y, f32 z)
+extern "C" f32 find_water_level(f32 x, f32 y, f32 z)
 {
 	static f32 waterLevel;
 
