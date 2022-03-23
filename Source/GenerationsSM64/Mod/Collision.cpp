@@ -37,7 +37,7 @@ Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& dir
 	hh::math::CVector position;
 	hh::math::CVector normal;
 
-	if (!rayCast(begin, end, position, normal, flags) || direction.dot(normal) >= 0)
+	if (!rayCast(begin, end, position, normal, flags))
 		return nullptr;
 
 	normal.normalize();
@@ -160,15 +160,29 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 		orientation * hh::math::CVector(-0.707f, 0, -0.707f),
 	};
 
-	hh::math::CVector direction;
+	hh::math::CVector directionCurr;
+
+	// New version of the wall detection code fixes BLJs, somehow.
+	// Execute the old code when long jumping to bring BLJs back.
+	//
+	// Please note that it's possible the old code simply was making
+	// BLJs way easier to pull off, but honestly, it's fun!
+	bool bljTolerantCurr = FALSE;
 
 	data->numWalls = 0;
 
-	for (auto& dir : directions)
+	for (auto& direction : directions)
 	{
-		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, dir, 20, data->offsetY, data->radius);
+		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, 20, data->offsetY, data->radius);
 
 		if (!surface)
+			continue;
+
+		const bool bljTolerant = g_state->mgMarioStateVal.action == ACT_LONG_JUMP &&
+			directions[3].dot(hh::math::CVector(surface->normal.x, surface->normal.y, surface->normal.z)) > 0;
+
+		// Do the new checks only if we aren't BLJ tolerant.
+		if (!bljTolerant && abs(surface->normal.y) > 0.1f)
 			continue;
 
 		if (data->numWalls > 0)
@@ -187,7 +201,8 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 
 		data->numWalls = 1;
 		data->walls[0] = surface;
-		direction = dir;
+		directionCurr = direction;
+		bljTolerantCurr = bljTolerant;
 	}
 
 	if (data->numWalls > 0)
@@ -195,9 +210,16 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 		Surface* wall = data->walls[0];
 
 		// Apply a bias alongside the ray we cast. Using the surface
-		// normal is going to cause Mario to "wall slide".
-		data->x = wall->vertex1[0] - direction.x() * data->radius;
-		data->z = wall->vertex1[2] - direction.z() * data->radius;
+		// normal instead causes Mario to "wall slide" for some reason.
+
+		// For BLJ tolerant surfaces, make an exception and use
+		// the old code where sliding still happens.
+
+		float x = bljTolerantCurr ? wall->normal.x : -directionCurr.x();
+		float z = bljTolerantCurr ? wall->normal.z : -directionCurr.z();
+
+		data->x = wall->vertex1[0] + x * data->radius;
+		data->z = wall->vertex1[2] + z * data->radius;
 	}
 
 	return data->numWalls;

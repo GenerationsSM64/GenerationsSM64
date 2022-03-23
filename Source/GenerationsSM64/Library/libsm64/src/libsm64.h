@@ -1,10 +1,6 @@
 #ifndef LIB_SM64_H
 #define LIB_SM64_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -86,9 +82,5 @@ extern uint8_t sm64_mario_diving(int32_t marioId);
 extern uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject );
 extern void sm64_surface_object_move( uint32_t objectId, const struct SM64ObjectTransform *transform );
 extern void sm64_surface_object_delete( uint32_t objectId );
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif//LIB_SM64_H
