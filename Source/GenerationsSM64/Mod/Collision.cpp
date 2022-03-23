@@ -160,36 +160,42 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 		orientation * hh::math::CVector(-0.707f, 0, -0.707f),
 	};
 
+	hh::math::CVector direction;
+
 	data->numWalls = 0;
 
-	for (auto& direction : directions)
+	for (auto& dir : directions)
 	{
-		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, 20, data->offsetY, data->radius);
+		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, dir, 20, data->offsetY, data->radius);
 
-		if (surface)
+		if (!surface)
+			continue;
+
+		if (data->numWalls > 0)
 		{
-			if (data->numWalls > 0)
-			{
-				float x1 = surface->vertex1[0] - data->x;
-				float y1 = surface->vertex1[1] - data->y - data->offsetY;
-				float z1 = surface->vertex1[2] - data->z;
+			float x1 = surface->vertex1[0] - data->x;
+			float y1 = surface->vertex1[1] - data->y - data->offsetY;
+			float z1 = surface->vertex1[2] - data->z;
 
-				float x2 = data->walls[0]->vertex1[0] - data->x;
-				float y2 = data->walls[0]->vertex1[1] - data->y - data->offsetY;
-				float z2 = data->walls[0]->vertex1[2] - data->z;
+			float x2 = data->walls[0]->vertex1[0] - data->x;
+			float y2 = data->walls[0]->vertex1[1] - data->y - data->offsetY;
+			float z2 = data->walls[0]->vertex1[2] - data->z;
 
-				if ((x1 * x1 + y1 * y1 + z1 * z1) > (x2 * x2 + y2 * y2 + z2 * z2))
-					continue;
-			}
-
-			data->numWalls = 1;
-			data->walls[0] = surface;
+			if ((x1 * x1 + y1 * y1 + z1 * z1) > (x2 * x2 + y2 * y2 + z2 * z2))
+				continue;
 		}
+
+		data->numWalls = 1;
+		data->walls[0] = surface;
+		direction = dir;
 	}
+
 	if (data->numWalls > 0)
 	{
-		data->x = data->walls[0]->vertex1[0] + data->walls[0]->normal.x * data->radius;
-		data->z = data->walls[0]->vertex1[2] + data->walls[0]->normal.z * data->radius;
+		Surface* wall = data->walls[0];
+
+		data->x = wall->vertex1[0] - direction.x() * data->radius;
+		data->z = wall->vertex1[2] - direction.z() * data->radius;
 	}
 
 	return data->numWalls;
