@@ -28,6 +28,57 @@ extern "C" f32* geo_get_override_matrix()
 	return useOverrideMatrix ? overrideMatrix.data() : nullptr;
 }
 
+// provided by Brian
+enum CollisionType : uint32_t
+{
+	TypeNoAttack = 0x1E61B5C,
+	TypeRagdoll = 0x1E61B60,
+	TypeSonicSpinCharge = 0x1E61B64,
+	TypeSonicSpin = 0x1E61B68,
+	TypeSonicUnbeaten = 0x1E61B6C,
+	TypeSuperSonic = 0x1E61B70,
+	TypeSonicSliding = 0x1E61B74,
+	TypeSonicHoming = 0x1E61B78,
+	TypeSonicSelectJump = 0x1E61B7C,
+	TypeSonicDrift = 0x1E61B80,
+	TypeSonicBoost = 0x1E61B84,
+	TypeSonicStomping = 0x1E61B88,
+	TypeSonicTrickAttack = 0x1E61B8C,
+	TypeSonicSquatKick = 0x1E61B90,
+	TypeSonicClassicSpin = 0x1E61B94,
+	TypeExplosion = 0x1E61B98,
+	TypeBossAttack = 0x1E61B9C,
+	TypeGunTruckAttack = 0x1E61BA0,
+	TypeRagdollEnemyAttack = 0x1E61BA4,
+};
+
+static void* setCollision(CollisionType collisionType, bool enabled)
+{
+    static void* const pEnableFunc = (void*)0xE65610;
+    static void* const pDisableFunc = (void*)0xE655C0;
+
+    __asm
+    {
+        mov edi, 0x1E5E2F0
+        mov edi, [edi]
+
+        mov ecx, collisionType
+        mov ecx, [ecx]
+        push ecx
+
+        cmp enabled, 0
+        je jump
+
+        call [pEnableFunc]
+        jmp end
+
+    jump:
+        call [pDisableFunc]
+        
+        end:
+    }
+}
+
 int32_t mario = -1;
 SM64MarioInputs inputs;
 SM64MarioState state;
@@ -234,6 +285,13 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		damaged = damaging;
 
 		sm64_mario_set_health(mario, dead ? 0 : 0x500);
+
+		FUNCTION_PTR(void, __thiscall, changeCollision, 0xDFCD20, void* This, size_t type);
+
+		const bool attacking = sm64_mario_attacking(mario);
+		changeCollision(playerContext, attacking ? 2 : 0);
+		setCollision(TypeSonicBoost, attacking);
+		setCollision(TypeSonicStomping, sm64_mario_diving(mario));
 	}
 
 	if (!controlSonic)
@@ -392,11 +450,6 @@ void initMario()
 	INSTALL_HOOK(CPlayerAddCallback);
 	INSTALL_HOOK(ProcMsgSetPosition);
 	INSTALL_HOOK(SetSticks);
-
-	// Immediately stand up when taking damage.
-	WRITE_NOP(0x123F08B, 2); 
-	WRITE_NOP(0x123F07C, 2); 
-	WRITE_NOP(0x123F0B1, 2); 
 
 	buffers.position = new float[9 * SM64_GEO_MAX_TRIANGLES];
 	buffers.color = new float[9 * SM64_GEO_MAX_TRIANGLES];
