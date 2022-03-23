@@ -267,6 +267,9 @@ void sm64_mario_set_position(int32_t marioId, float x, float y, float z)
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
     vec3f_set(gMarioState->pos, x, y, z);
+    vec3f_copy(gMarioState->prevPos, gMarioState->pos);
+    vec3f_copy(gMarioObject->header.gfx.pos, gMarioState->pos);
+    vec3f_copy(gMarioObject->header.gfx.prevPos, gMarioState->pos);
 }
 
 void sm64_mario_set_velocity(int32_t marioId, float x, float y, float z, float forwardVel)
@@ -280,6 +283,7 @@ void sm64_mario_set_velocity(int32_t marioId, float x, float y, float z, float f
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
     vec3f_set(gMarioState->vel, x, y, z);
+    vec3f_copy(gMarioState->prevVel, gMarioState->vel);
     gMarioState->forwardVel = forwardVel;
 }
 
@@ -366,6 +370,32 @@ void sm64_mario_toggle_wing_cap(int32_t marioId)
 
         play_sound(SOUND_MENU_STAR_SOUND, gMarioState->marioObj->header.gfx.cameraToObject);
         play_sound(SOUND_MARIO_HERE_WE_GO, gMarioState->marioObj->header.gfx.cameraToObject);
+    }
+}
+
+void sm64_mario_take_damage(int32_t marioId)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
+    {
+        DEBUG_PRINT("Tried to damage non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+
+    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE))
+    {
+        u32 action = ACT_FORWARD_GROUND_KB;
+
+        if (gMarioState->action & (ACT_FLAG_SWIMMING | ACT_FLAG_METAL_WATER)) {
+            action = ACT_FORWARD_WATER_KB;
+        }
+        else if (gMarioState->action & (ACT_FLAG_AIR | ACT_FLAG_ON_POLE | ACT_FLAG_HANGING)) {
+            action = ACT_FORWARD_AIR_KB;
+        }
+
+        play_sound(SOUND_MARIO_ATTACKED, gMarioObject->header.gfx.cameraToObject);
+        set_mario_action(gMarioState, action, 1);
     }
 }
 

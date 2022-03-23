@@ -85,9 +85,11 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		stateName == "SpecialJump" ||
 		strstr(stateName.c_str(), "Homing") ||
 		strstr(stateName.c_str(), "Grind") ||
-		stateName == "JumpSpring";
+		stateName == "JumpSpring" ||
+		strstr(stateName.c_str(), "Rocket");
 
 	DebugDrawText::log(format("State: %s", player->m_StateMachine.GetCurrentState()->GetStateName().c_str()));
+	DebugDrawText::log(format("Animation: %s", playerContext->GetCurrentAnimationName().c_str()));
 
 	float animOffset = 0.0f;
 
@@ -117,20 +119,18 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		const auto& animName = playerContext->GetCurrentAnimationName();
 
-		DebugDrawText::log(format("Animation: %s", animName.c_str()));
-
 		int animId = -1;
 
 		if (animName == "JumpBall" || animName == "SpinAttack")
 			animId = MARIO_ANIM_FORWARD_SPINNING;
 
-		else if (animName == "UpReelStart")
+		else if (animName == "UpReelStart" || animName == "PulleyStart")
 		{
-			animId = MARIO_ANIM_FAST_LEDGE_GRAB;
+			animId = MARIO_ANIM_IDLE_ON_LEDGE;
 			animOffset = 1.0f;
 		}
 
-		else if (animName == "UpReelLoop")
+		else if (animName == "UpReelLoop" || animName == "PulleyLoop")
 		{
 			animId = MARIO_ANIM_IDLE_ON_LEDGE;
 			animOffset = 1.0f;
@@ -224,7 +224,16 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			soundHandleCues[i] = -1;
 		}
 
-		sm64_mario_set_health(mario, 0x500); // For now.
+		static bool damaged;
+		const bool damaging = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] != 0;
+		const bool dead = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Dead] != 0;
+
+		if (!dead && !damaged && damaging)
+			sm64_mario_take_damage(mario);
+
+		damaged = damaging;
+
+		sm64_mario_set_health(mario, dead ? 0 : 0x500);
 	}
 
 	if (!controlSonic)
@@ -383,6 +392,11 @@ void initMario()
 	INSTALL_HOOK(CPlayerAddCallback);
 	INSTALL_HOOK(ProcMsgSetPosition);
 	INSTALL_HOOK(SetSticks);
+
+	// Immediately stand up when taking damage.
+	WRITE_NOP(0x123F08B, 2); 
+	WRITE_NOP(0x123F07C, 2); 
+	WRITE_NOP(0x123F0B1, 2); 
 
 	buffers.position = new float[9 * SM64_GEO_MAX_TRIANGLES];
 	buffers.color = new float[9 * SM64_GEO_MAX_TRIANGLES];

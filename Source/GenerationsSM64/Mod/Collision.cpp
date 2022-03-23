@@ -194,6 +194,8 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 	{
 		Surface* wall = data->walls[0];
 
+		// Apply a bias alongside the ray we cast. Using the surface
+		// normal is going to cause Mario to "wall slide".
 		data->x = wall->vertex1[0] - direction.x() * data->radius;
 		data->z = wall->vertex1[2] - direction.z() * data->radius;
 	}
