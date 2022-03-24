@@ -1,5 +1,8 @@
 ﻿#pragma once
 
+extern std::unique_ptr<uint8_t[]> rom;
+extern size_t romSize;
+
 extern std::unique_ptr<uint8_t[]> marioTexture;
 extern size_t marioTextureSize;
 

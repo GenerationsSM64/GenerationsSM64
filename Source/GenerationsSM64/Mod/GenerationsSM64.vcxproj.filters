@@ -15,5 +15,6 @@
     <ClInclude Include="Pch.h" />
     <ClInclude Include="Mod.h" />
     <ClInclude Include="Util.h" />
+    <ClInclude Include="EndianSwap.h" />
   </ItemGroup>
 </Project>

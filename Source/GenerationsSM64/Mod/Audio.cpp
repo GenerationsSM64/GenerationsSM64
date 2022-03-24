@@ -40,12 +40,10 @@ void audioCallback()
 
 void initAudio(const std::string& directoryPath)
 {
-    size_t length;
-
-    gSoundDataADSR = readAllBytes(directoryPath + "sound_data.ctl", length).release();
-    gSoundDataRaw = readAllBytes(directoryPath + "sound_data.tbl", length).release();
-    gMusicData = readAllBytes(directoryPath + "sequences.bin", length).release();
-    gBankSetsData = readAllBytes(directoryPath + "bank_sets", length).release();
+    gSoundDataADSR = rom.get() + 0x57B720;
+    gSoundDataRaw = rom.get() + 0x593560;
+    gMusicData = rom.get() + 0x7B0860;
+    gBankSetsData = rom.get() + 0x7CC620;
 
     audio_wasapi.init();
     audio_init();

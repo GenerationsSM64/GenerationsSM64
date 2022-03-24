@@ -1,6 +1,42 @@
 #include "Mod.h"
 #include "Util.h"
 
+std::unique_ptr<uint8_t[]> rom;
+size_t romSize;
+
+struct EndianSwapInfo
+{
+	size_t offset;
+	uint16_t count;
+	uint16_t byteSize;
+};
+
+const EndianSwapInfo endianSwapInfos[] =
+{
+#include "EndianSwap.h"
+};
+
+void romEndianSwap()
+{
+	for (auto& info : endianSwapInfos)
+	{
+		for (size_t i = 0; i < info.count; i++)
+		{
+			uint8_t* data = rom.get() + info.offset + i * info.byteSize;
+			switch (info.byteSize)
+			{
+			case 2:
+				*(unsigned short*)data = _byteswap_ushort(*(unsigned short*)data);
+				break;
+
+			case 4:
+				*(unsigned long*)data = _byteswap_ulong(*(unsigned long*)data);
+				break;
+			}
+		}
+	}
+}
+
 const uint8_t marioTextureHeader[] = 
 {
 	0x44, 0x44, 0x53, 0x20, 0x7C, 0x00, 0x00, 0x00, 0x0F, 0x10, 0x02, 0x00,
@@ -22,8 +58,10 @@ size_t marioTextureSize;
 void initSM64(const std::string& romFilePath)
 {
 	// Read the ROM.
-	size_t length;
-	const auto rom = readAllBytes(romFilePath, length);
+	rom = readAllBytes(romFilePath, romSize);
+
+	// Endian swap the ROM.
+	romEndianSwap();
 
 	// Initialize libsm64.
 	marioTextureSize = sizeof(marioTextureHeader) + SM64_TEXTURE_WIDTH * SM64_TEXTURE_HEIGHT * 4;
