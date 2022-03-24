@@ -259,7 +259,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		inputs.stickY /= norm;
 	}
 
-	if (padState.IsTapped(Sonic::eKeyState_Y))
+	if (padState.IsTapped(Sonic::eKeyState_B))
 		sm64_mario_toggle_wing_cap(mario);
 
 	sm64_mario_tick(mario, &inputs, &state, &buffers);
@@ -287,10 +287,12 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		sm64_mario_set_health(mario, dead ? 0 : 0x500);
 
-		FUNCTION_PTR(void, __thiscall, changeCollision, 0xDFCD20, void* This, size_t type);
+		FUNCTION_PTR(void, __thiscall, changeCollision, 
+			Sonic::Player::CSonicClassicContext::GetInstance() ? 0xDC30A0 : 0xDFCD20, void* This, size_t type);
 
 		const bool attacking = sm64_mario_attacking(mario);
 		changeCollision(playerContext, attacking ? 2 : 0);
+
 		setCollision(TypeSonicBoost, attacking);
 		setCollision(TypeSonicStomping, sm64_mario_diving(mario));
 	}
@@ -333,7 +335,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	for (size_t i = 0; i < (size_t)buffers.numTrianglesUsed * 3; i++)
 	{
 		vertices[i].position[0] = (buffers.position[i * 3 + 0] - state.gfxPosition[0]) * 0.01f;
-		vertices[i].position[1] = (buffers.position[i * 3 + 1] - state.gfxPosition[1]) * 0.01f + animOffset;
+		vertices[i].position[1] = (buffers.position[i * 3 + 1] - state.gfxPosition[1]) * 0.01f;
 		vertices[i].position[2] = (buffers.position[i * 3 + 2] - state.gfxPosition[2]) * 0.01f;
 
 		memcpy(vertices[i].color, &buffers.color[i * 3], sizeof(vertices[i].color));
@@ -349,7 +351,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	vertexBuffer->Unlock();
 
-	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(state.gfxPosition[0], state.gfxPosition[1], state.gfxPosition[2]) * 0.01f);
+	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(
+		state.gfxPosition[0] * 0.01f, state.gfxPosition[1] * 0.01f + animOffset, state.gfxPosition[2] * 0.01f));
 }
 
 HOOK(void, __fastcall, CGameplayFlowStageOnExit, 0xD05360, void* This)
