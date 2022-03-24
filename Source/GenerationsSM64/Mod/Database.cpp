@@ -43,7 +43,6 @@ HOOK(bool, __stdcall, ParseArchiveTree, 0xD4C8E0, void* A1, char* data, const si
         stream << "  <DefAppend>\n";
         stream << "    <Name>SonicActionCommon</Name>\n";
         stream << "    <Archive>Mario</Archive>\n";
-        stream << "    <Archive>MarioSound</Archive>\n";
         stream << "  </DefAppend>\n";
 
         str = stream.str();

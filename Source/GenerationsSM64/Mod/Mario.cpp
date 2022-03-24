@@ -1,25 +1,5 @@
 #include "Mod.h"
 
-boost::shared_ptr<Hedgehog::Sound::CSoundHandle> soundHandles[16];
-int soundHandleCues[_countof(soundHandles)];
-bool soundHandleFlags[_countof(soundHandles)];
-
-extern "C" void play_sound(s32 soundBits, f32* pos)
-{
-	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (playerContext)
-	{
-		const size_t cue = soundBits & 0xF0FF0000;
-		const size_t bank = soundBits >> 28;
-
-		if (cue != soundHandleCues[bank])
-			soundHandles[bank] = playerContext->PlaySound(cue, false);
-
-		soundHandleCues[bank] = cue;
-		soundHandleFlags[bank] = true;
-	}
-}
-
 hh::math::CMatrix overrideMatrix;
 bool useOverrideMatrix;
 
@@ -224,11 +204,6 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		sm64_mario_set_animation_lock(mario, false);
 	}
 
-	// Clear sound handle flags. If Mario sets them,
-	// that means the sound handle should stay.
-	// See bb_play_sound above.
-	memset(soundHandleFlags, 0, sizeof(soundHandleFlags));
-
 	const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
 	const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
 
@@ -266,16 +241,6 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	if (state.update)
 	{
-		// Clear any sound handles that aren't persistent.
-		for (size_t i = 0; i < _countof(soundHandles); i++)
-		{
-			if (soundHandleFlags[i]) // This sound handle should stay.
-				continue;
-
-			soundHandles[i].reset();
-			soundHandleCues[i] = -1;
-		}
-
 		static bool damaged;
 		const bool damaging = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] != 0;
 		const bool dead = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Dead] != 0;

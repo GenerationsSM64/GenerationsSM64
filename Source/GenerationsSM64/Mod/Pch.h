@@ -7,9 +7,11 @@
 #include <Windows.h>
 #include <detours.h>
 
+#include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
-#include <cmath>
+#include <thread>
 
 #include <INIReader.h>
 
@@ -19,12 +21,15 @@
 
 extern "C"
 {
-#include <libsm64/src/libsm64.h>
-#include <libsm64/src/decomp/engine/surface_collision.h>
-#include <libsm64/src/decomp/include/mario_animation_ids.h>
-#include <libsm64/src/decomp/include/sm64.h>
-#include <libsm64/src/decomp/include/surface_terrains.h>
-#include <libsm64/src/decomp/global_state.h>
+#include <libsm64.h>
+#include <decomp/global_state.h>
+#include <decomp/audio/external.h>
+#include <decomp/audio/load.h>
+#include <decomp/engine/surface_collision.h>
+#include <decomp/include/mario_animation_ids.h>
+#include <decomp/include/sm64.h>
+#include <decomp/include/surface_terrains.h>
 }
+#include <decomp/pc/audio/audio_wasapi.h>
 
 #include "../../GenerationsParameterEditor/Include/DebugDrawText.h"

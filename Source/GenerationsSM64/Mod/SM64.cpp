@@ -1,4 +1,5 @@
 #include "Mod.h"
+#include "Util.h"
 
 const uint8_t marioTextureHeader[] = 
 {
@@ -21,16 +22,8 @@ size_t marioTextureSize;
 void initSM64(const std::string& romFilePath)
 {
 	// Read the ROM.
-	FILE* file = fopen(romFilePath.c_str(), "rb");
-	fseek(file, 0, SEEK_END);
-
-	const size_t length = ftell(file);
-
-	std::unique_ptr<uint8_t[]> rom = std::make_unique<uint8_t[]>(length);
-	fseek(file, 0, SEEK_SET);
-	fread(rom.get(), 1, length, file);
-
-	fclose(file);
+	size_t length;
+	const auto rom = readAllBytes(romFilePath, length);
 
 	// Initialize libsm64.
 	marioTextureSize = sizeof(marioTextureHeader) + SM64_TEXTURE_WIDTH * SM64_TEXTURE_HEIGHT * 4;
