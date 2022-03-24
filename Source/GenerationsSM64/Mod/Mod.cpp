@@ -18,5 +18,6 @@ extern "C" void __declspec(dllexport) Init(ModInfo * info)
 		dir.erase(pos + 1);
 
 	initSM64(dir + "baserom.us.z64");
+	initDatabase();
 	initMario();
 }

@@ -7,9 +7,15 @@
     <ClCompile Include="Mario.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="SM64.cpp" />
+    <ClCompile Include="Database.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Pch.h" />
     <ClInclude Include="Mod.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Database">
+      <UniqueIdentifier>{8e51b9a1-f7a4-47d7-abc2-b945bebc0183}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

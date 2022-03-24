@@ -6,4 +6,5 @@ extern size_t marioTextureSize;
 extern SM64MarioState state;
 
 extern void initSM64(const std::string& romFilePath);
+extern void initDatabase();
 extern void initMario();

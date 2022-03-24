@@ -113,6 +113,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pch.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Database.cpp" />
     <ClCompile Include="SM64.cpp" />
   </ItemGroup>
   <ItemGroup>

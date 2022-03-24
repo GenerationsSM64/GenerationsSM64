@@ -400,7 +400,7 @@ namespace SoundBankConverter
                 }
             };
 
-            CriTableSerializer.Serialize("mario.csb", cueSheetList, CriTableWriterSettings.AdxSettings);
+            CriTableSerializer.Serialize("Mario.csb", cueSheetList, CriTableWriterSettings.AdxSettings);
         }
     }
 }

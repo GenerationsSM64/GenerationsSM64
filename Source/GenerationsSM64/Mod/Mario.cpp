@@ -137,7 +137,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		strstr(stateName.c_str(), "Homing") ||
 		strstr(stateName.c_str(), "Grind") ||
 		stateName == "JumpSpring" ||
-		strstr(stateName.c_str(), "Rocket");
+		strstr(stateName.c_str(), "Rocket") ||
+		stateName == "LightSpeedDash";
 
 	DebugDrawText::log(format("State: %s", player->m_StateMachine.GetCurrentState()->GetStateName().c_str()));
 	DebugDrawText::log(format("Animation: %s", playerContext->GetCurrentAnimationName().c_str()));
@@ -378,7 +379,7 @@ HOOK(void, __fastcall, CPlayerAddCallback, 0xE799F0, Sonic::Player::CPlayer* Thi
 
 	// Remake the "mario.dds" file using the texture generated from the ROM.
 	boost::shared_ptr<hh::mr::CPictureData> spPictureData;
-	mirageDatabaseWrapper.GetPictureData(spPictureData, "mario", 0);
+	mirageDatabaseWrapper.GetPictureData(spPictureData, "Mario", 0);
 
 	FUNCTION_PTR(void, __cdecl, makePictureData, 0x743DE0, hh::mr::CPictureData* pPictureData, const uint8_t* pData, size_t length,
 		hh::mr::CRenderingInfrastructure* pRenderingInfrastructure);
@@ -395,7 +396,7 @@ HOOK(void, __fastcall, CPlayerAddCallback, 0xE799F0, Sonic::Player::CPlayer* Thi
 		*(hh::mr::CRenderingInfrastructure**)((char*)Sonic::CApplicationDocument::GetInstance()->m_pMember + 60));
 
 	// Add Mario's model. The vertex buffers are going to be dynamically updated using the data returned by libsm64.
-	mirageDatabaseWrapper.GetModelData(modelData, "mario", 0);
+	mirageDatabaseWrapper.GetModelData(modelData, "Mario", 0);
 	This->AddRenderable("Object", renderable = boost::make_shared<hh::mr::CSingleElement>(modelData), true);
 }
 
