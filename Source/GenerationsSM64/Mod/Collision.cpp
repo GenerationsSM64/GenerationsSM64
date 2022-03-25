@@ -182,7 +182,7 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 			directions[3].dot(hh::math::CVector(surface->normal.x, surface->normal.y, surface->normal.z)) > 0;
 
 		// Do the new checks only if we aren't BLJ tolerant.
-		if (!bljTolerant && abs(surface->normal.y) > 0.1f)
+		if (!bljTolerant && abs(surface->normal.y) > 0.01f)
 			continue;
 
 		if (data->numWalls > 0)
