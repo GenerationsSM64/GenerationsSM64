@@ -183,9 +183,9 @@ void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, str
 
     global_state_bind( ((struct MarioInstance *)s_mario_instance_pool.objects[ marioId ])->globalState );
 
-    outState->update = get_interpolation_should_update();
+    outState->isUpdateFrame = get_interpolation_should_update();
 
-    if (outState->update) {
+    if (outState->isUpdateFrame) {
         vec3f_copy(gMarioState->prevPos, gMarioState->pos);
         vec3f_copy(gMarioState->prevVel, gMarioState->vel);
         vec3s_copy(gMarioState->prevFaceAngle, gMarioState->faceAngle);
@@ -225,10 +225,13 @@ void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, str
         g_state->mButtonZ = inputs->buttonZ;
     }
 
-    vec3f_interpolate( outState->position, gMarioState->prevPos, gMarioState->pos );
-    vec3f_interpolate( outState->velocity, gMarioState->prevVel, gMarioState->vel );
-    outState->faceAngle = s16_angle_interpolate(gMarioState->prevFaceAngle[1], gMarioState->faceAngle[1]) / 32768.0f * M_PI;
-    vec3f_interpolate(outState->gfxPosition, gMarioObject->header.gfx.prevPos, gMarioObject->header.gfx.pos);
+    vec3f_copy(outState->position, gMarioState->pos);
+    outState->faceAngle = gMarioState->faceAngle[1] / 32768.0f * M_PI;
+
+    vec3f_interpolate( outState->interpolatedPosition, gMarioState->prevPos, gMarioState->pos );
+    vec3f_interpolate( outState->interpolatedVelocity, gMarioState->prevVel, gMarioState->vel );
+    outState->interpolatedFaceAngle = s16_angle_interpolate(gMarioState->prevFaceAngle[1], gMarioState->faceAngle[1]) / 32768.0f * M_PI;
+    vec3f_interpolate(outState->interpolatedGfxPosition, gMarioObject->header.gfx.prevPos, gMarioObject->header.gfx.pos);
 
     gfx_adapter_bind_output_buffers(outBuffers);
 
@@ -256,7 +259,7 @@ void sm64_mario_delete( int32_t marioId )
     obj_pool_free_index( &s_mario_instance_pool, marioId );
 }
 
-void sm64_mario_set_position(int32_t marioId, float x, float y, float z)
+void sm64_mario_set_position(int32_t marioId, float x, float y, float z, uint8_t overrideHistory)
 {
     if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
     {
@@ -267,9 +270,13 @@ void sm64_mario_set_position(int32_t marioId, float x, float y, float z)
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
     vec3f_set(gMarioState->pos, x, y, z);
-    vec3f_copy(gMarioState->prevPos, gMarioState->pos);
     vec3f_copy(gMarioObject->header.gfx.pos, gMarioState->pos);
-    vec3f_copy(gMarioObject->header.gfx.prevPos, gMarioState->pos);
+
+    if (overrideHistory) {
+        vec3f_copy(gMarioState->prevPos, gMarioState->pos);
+        vec3f_copy(gMarioObject->header.gfx.prevPos, gMarioState->pos);
+    }
+
     vec3f_set(gMarioObject->header.gfx.cameraToObject, 0, 0, 0);
 }
 
@@ -422,6 +429,18 @@ uint8_t sm64_mario_diving(int32_t marioId)
 
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
     return (gMarioState->action & ACT_FLAG_DIVING) != 0;
+}
+
+void sm64_mario_set_camera_to_object(int32_t marioId, float x, float y, float z)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
+    {
+        DEBUG_PRINT("Tried to set camera to object position of non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+    vec3f_set(gMarioObject->header.gfx.cameraToObject, x, y, z);
 }
 
 uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject )

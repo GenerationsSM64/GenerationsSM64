@@ -32,7 +32,7 @@ enum CollisionType : uint32_t
 	TypeRagdollEnemyAttack = 0x1E61BA4,
 };
 
-static void* setCollision(CollisionType collisionType, bool enabled)
+void* setCollision(CollisionType collisionType, bool enabled)
 {
     static void* const pEnableFunc = (void*)0xE65610;
     static void* const pDisableFunc = (void*)0xE655C0;
@@ -59,6 +59,19 @@ static void* setCollision(CollisionType collisionType, bool enabled)
     }
 }
 
+void getPathControllerData(Sonic::CPathController* controller, hh::math::CVector* point, hh::math::CVector* invec, hh::math::CVector* outvec)
+{
+	static int pFunc = 0xE835F0;
+	__asm
+	{
+		push outvec
+		push point
+		mov edi, invec
+		mov esi, controller
+		call[pFunc]
+	}
+}
+
 int32_t mario = -1;
 SM64MarioInputs inputs;
 SM64MarioState state;
@@ -79,8 +92,8 @@ void deleteMario()
 
 void computeMarioPositionAndRotation(hh::math::CVector& position, hh::math::CQuaternion& rotation)
 {
-	position = hh::math::CVector(state.position[0], state.position[1], state.position[2]) * 0.01f;
-	rotation = Eigen::AngleAxisf(state.faceAngle, Eigen::Vector3f::UnitY());
+	position = hh::math::CVector(state.interpolatedPosition[0], state.interpolatedPosition[1], state.interpolatedPosition[2]) * 0.01f;
+	rotation = Eigen::AngleAxisf(state.interpolatedFaceAngle, Eigen::Vector3f::UnitY());
 }
 
 void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& updateInfo)
@@ -123,6 +136,17 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	DebugDrawText::log(format("State: %s", player->m_StateMachine.GetCurrentState()->GetStateName().c_str()));
 	DebugDrawText::log(format("Animation: %s", playerContext->GetCurrentAnimationName().c_str()));
 
+#define print_vector(offset) \
+	auto& _print_vector_##offset = *(hh::math::CVector*)(*(char**)((char*)playerContext->m_sp2DPathController_01.get() + 8) + offset); \
+	DebugDrawText::log(format("%d: %f %f %f", offset, _print_vector_##offset.x(), _print_vector_##offset.y(), _print_vector_##offset.z())); 
+
+	if (playerContext->m_sp2DPathController_01)
+	{
+		print_vector(48);
+		print_vector(64);
+		print_vector(80);
+	}
+
 	float animOffset = 0.0f;
 
 	if (controlSonic)
@@ -134,16 +158,12 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		velocity *= 100.0f / 30.0f;
 		rotation.normalize();
 
-		sm64_mario_set_position(mario, position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f);
+		sm64_mario_set_position(mario, position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f, TRUE);
 		sm64_mario_set_velocity(mario, velocity.x(), velocity.y(), velocity.z(), (rotation * hh::math::CVector::UnitZ()).dot(velocity));
 
 		const auto direction = (rotation * hh::math::CVector::UnitZ()).normalized();
 
-		float norm = sqrtf(direction.x() * direction.x() + direction.z() * direction.z());
-		if (norm > 0.0f)
-			norm = 1.0f / norm;
-
-		const float yaw = atan2(direction.x() * norm, direction.z() * norm);
+		const float yaw = atan2(direction.x(), direction.z());
 		sm64_mario_set_face_angle(mario, asin(-direction.y()), yaw, 0);
 
 		overrideMatrix = Eigen::Translation3f(position * 100.0f) * rotation;
@@ -239,8 +259,24 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	sm64_mario_tick(mario, &inputs, &state, &buffers);
 
-	if (state.update)
+	if (state.isUpdateFrame)
 	{
+		if (playerContext->m_Is2DMode && playerContext->m_sp2DPathController_01)
+		{
+			hh::math::CVector point, upVec, leftVec;
+			getPathControllerData(playerContext->m_sp2DPathController_01.get(), &point, &upVec, &leftVec);
+
+			const auto frontVec = upVec.cross(leftVec).normalized();
+
+			hh::math::CVector pos;
+			pos.x() = state.position[0] * 0.01f;
+			pos.y() = state.position[1] * 0.01f;
+			pos.z() = state.position[2] * 0.01f;
+			pos -= (pos - point).dot(frontVec) * frontVec;
+
+			sm64_mario_set_position(mario, pos.x() * 100.0f, pos.y() * 100.0f, pos.z() * 100.0f, FALSE);
+		}
+
 		static bool damaged;
 		const bool damaging = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] != 0;
 		const bool dead = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Dead] != 0;
@@ -265,7 +301,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	if (!controlSonic)
 	{
 		computeMarioPositionAndRotation(position, rotation);
-		velocity = hh::math::CVector(state.velocity[0], state.velocity[1], state.velocity[2]) * 0.01f * 30.0f;
+		velocity = hh::math::CVector(state.interpolatedVelocity[0], state.interpolatedVelocity[1], state.interpolatedVelocity[2]) * 0.01f * 30.0f;
 
 		playerContext->m_spMatrixNode->m_Transform.SetRotationAndPosition(rotation, position);
 		playerContext->m_spMatrixNode->NotifyChanged();
@@ -299,9 +335,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	for (size_t i = 0; i < (size_t)buffers.numTrianglesUsed * 3; i++)
 	{
-		vertices[i].position[0] = (buffers.position[i * 3 + 0] - state.gfxPosition[0]) * 0.01f;
-		vertices[i].position[1] = (buffers.position[i * 3 + 1] - state.gfxPosition[1]) * 0.01f;
-		vertices[i].position[2] = (buffers.position[i * 3 + 2] - state.gfxPosition[2]) * 0.01f;
+		vertices[i].position[0] = (buffers.position[i * 3 + 0] - state.interpolatedGfxPosition[0]) * 0.01f;
+		vertices[i].position[1] = (buffers.position[i * 3 + 1] - state.interpolatedGfxPosition[1]) * 0.01f;
+		vertices[i].position[2] = (buffers.position[i * 3 + 2] - state.interpolatedGfxPosition[2]) * 0.01f;
 
 		memcpy(vertices[i].color, &buffers.color[i * 3], sizeof(vertices[i].color));
 		memcpy(vertices[i].normal, &buffers.normal[i * 3], sizeof(vertices[i].normal));
@@ -317,7 +353,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	vertexBuffer->Unlock();
 
 	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(
-		state.gfxPosition[0] * 0.01f, state.gfxPosition[1] * 0.01f + animOffset, state.gfxPosition[2] * 0.01f));
+		state.interpolatedGfxPosition[0] * 0.01f, state.interpolatedGfxPosition[1] * 0.01f + animOffset, state.interpolatedGfxPosition[2] * 0.01f));
 }
 
 HOOK(void, __fastcall, CGameplayFlowStageOnExit, 0xD05360, void* This)
@@ -371,7 +407,7 @@ HOOK(void, __fastcall, CPlayerAddCallback, 0xE799F0, Sonic::Player::CPlayer* Thi
 HOOK(void, __fastcall, ProcMsgSetPosition, 0xE772D0, Sonic::Player::CPlayer* This, void* Edx, Sonic::Message::MsgSetPosition& msgSetPosition)
 {
 	if (mario >= 0)
-		sm64_mario_set_position(mario, msgSetPosition.m_Position.x() * 100.0f, msgSetPosition.m_Position.y() * 100.0f, msgSetPosition.m_Position.z() * 100.0f);
+		sm64_mario_set_position(mario, msgSetPosition.m_Position.x() * 100.0f, msgSetPosition.m_Position.y() * 100.0f, msgSetPosition.m_Position.z() * 100.0f, TRUE);
 
 	originalProcMsgSetPosition(This, Edx, msgSetPosition);
 }

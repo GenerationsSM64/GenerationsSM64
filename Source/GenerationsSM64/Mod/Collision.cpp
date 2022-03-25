@@ -154,10 +154,10 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 		orientation * hh::math::CVector::UnitX(),
 		orientation * -hh::math::CVector::UnitZ(),
 		orientation * hh::math::CVector::UnitZ(),
-		orientation * hh::math::CVector(0.707f, 0, 0.707f),
-		orientation * hh::math::CVector(0.707f, 0, -0.707f),
-		orientation * hh::math::CVector(-0.707f, 0, 0.707f),
-		orientation * hh::math::CVector(-0.707f, 0, -0.707f),
+		orientation * hh::math::CVector(0.70710678118f, 0, 0.70710678118f),
+		orientation * hh::math::CVector(0.70710678118f, 0, -0.70710678118f),
+		orientation * hh::math::CVector(-0.70710678118f, 0, 0.70710678118f),
+		orientation * hh::math::CVector(-0.70710678118f, 0, -0.70710678118f),
 	};
 
 	hh::math::CVector directionCurr;
@@ -182,7 +182,7 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 			directions[3].dot(hh::math::CVector(surface->normal.x, surface->normal.y, surface->normal.z)) > 0;
 
 		// Do the new checks only if we aren't BLJ tolerant.
-		if (!bljTolerant && abs(surface->normal.y) > 0.01f)
+		if (!bljTolerant && abs(surface->normal.y) > 0.1f)
 			continue;
 
 		if (data->numWalls > 0)

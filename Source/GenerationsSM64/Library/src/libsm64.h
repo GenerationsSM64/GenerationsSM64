@@ -36,10 +36,12 @@ struct SM64SurfaceObject
 struct SM64MarioState
 {
     float position[3];
-    float velocity[3];
     float faceAngle;
-    float gfxPosition[3];
-    uint8_t update;
+    float interpolatedPosition[3];
+    float interpolatedGfxPosition[3];
+    float interpolatedVelocity[3];
+    float interpolatedFaceAngle;
+    uint8_t isUpdateFrame;
 };
 
 struct SM64MarioGeometryBuffers
@@ -68,7 +70,7 @@ extern void sm64_static_surfaces_load( const struct SM64Surface *surfaceArray, u
 extern int32_t sm64_mario_create( float x, float y, float z );
 extern void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, struct SM64MarioState *outState, struct SM64MarioGeometryBuffers *outBuffers );
 extern void sm64_mario_delete( int32_t marioId );
-extern void sm64_mario_set_position( int32_t marioId, float x, float y, float z );
+extern void sm64_mario_set_position( int32_t marioId, float x, float y, float z, uint8_t overrideHistory );
 extern void sm64_mario_set_velocity( int32_t marioId, float x, float y, float z, float forwardVel );
 extern void sm64_mario_set_health( int32_t marioId, int16_t health );
 extern void sm64_mario_set_face_angle(int32_t marioId, float x, float y, float z);
