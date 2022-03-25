@@ -79,6 +79,8 @@ SM64MarioGeometryBuffers buffers;
 boost::shared_ptr<hh::mr::CModelData> modelData;
 boost::shared_ptr<hh::mr::CSingleElement> renderable;
 size_t previousTriangleCount;
+float controlSonicTimer;
+bool controlSonicGrounded;
 
 void deleteMario()
 {
@@ -122,7 +124,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	const auto& stateName = player->m_StateMachine.GetCurrentState()->GetStateName();
 
-	const bool controlSonic =
+	bool controlSonic =
 		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl] ||
 		stateName == "HangOn" ||
 		strstr(stateName.c_str(), "ExternalControl") ||
@@ -133,19 +135,31 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		strstr(stateName.c_str(), "Rocket") ||
 		stateName == "LightSpeedDash";
 
+	if (controlSonic)
+	{
+		if (controlSonicTimer <= 0.0f)
+			controlSonicGrounded = playerContext->m_Grounded;
+
+		// Don't let grind states allow extra control.
+		controlSonicTimer = strstr(stateName.c_str(), "Grind") ? 0.0f : 0.5f; 
+	}
+
+	// Allow Sonic to be in control for a little longer.
+	else if (controlSonicTimer > 0.0f)
+	{
+		// Abort if grounded flag doesn't match.
+		if (playerContext->m_Grounded != controlSonicGrounded)
+			controlSonicTimer = 0.0f;
+
+		else 
+		{
+			controlSonic = true;
+			controlSonicTimer -= updateInfo.DeltaTime;
+		}
+	}
+
 	DebugDrawText::log(format("State: %s", player->m_StateMachine.GetCurrentState()->GetStateName().c_str()));
 	DebugDrawText::log(format("Animation: %s", playerContext->GetCurrentAnimationName().c_str()));
-
-#define print_vector(offset) \
-	auto& _print_vector_##offset = *(hh::math::CVector*)(*(char**)((char*)playerContext->m_sp2DPathController_01.get() + 8) + offset); \
-	DebugDrawText::log(format("%d: %f %f %f", offset, _print_vector_##offset.x(), _print_vector_##offset.y(), _print_vector_##offset.z())); 
-
-	if (playerContext->m_sp2DPathController_01)
-	{
-		print_vector(48);
-		print_vector(64);
-		print_vector(80);
-	}
 
 	float animOffset = 0.0f;
 
