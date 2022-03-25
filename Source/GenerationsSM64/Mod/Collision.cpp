@@ -72,14 +72,14 @@ Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& dir
 
 extern "C" f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface** pceil)
 {
-	f32 height = CELL_HEIGHT_LIMIT;
+	f32 height = limit;
 	*pceil = rayCast(posX, posY, posZ, &height, hh::math::CVector::UnitY()); // Cast a ray upwards.
 	return height;
 }
 
 extern "C" f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface** pfloor)
 {
-	f32 height = FLOOR_LOWER_LIMIT;
+	f32 height = -limit;
 	Surface* surface = rayCast(xPos, yPos, zPos, &height, -hh::math::CVector::UnitY()); // Cast a ray downwards.
 
 	// NULL surface is going to cause crash. Create a dummy surface instead.
