@@ -112,7 +112,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		strstr(stateName.c_str(), "Grind") ||
 		stateName == "JumpSpring" ||
 		strstr(stateName.c_str(), "Rocket") ||
-		stateName == "LightSpeedDash";
+		stateName == "LightSpeedDash" ||
+		stateName == "TramRiding";
 
 	if (controlSonic)
 	{
@@ -254,7 +255,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	if (state.isUpdateFrame)
 	{
-		if (playerContext->m_Is2DMode && playerContext->m_sp2DPathController_01)
+		// Let the player to go OOB when bumpers are held.
+		if (!padState.IsDown(Sonic::eKeyState_LeftBumper) && !padState.IsDown(Sonic::eKeyState_RightBumper) &&
+			playerContext->m_Is2DMode && playerContext->m_sp2DPathController_01)
 		{
 			hh::math::CVector point, upVec, leftVec;
 			getPathControllerData(playerContext->m_sp2DPathController_01.get(), &point, &upVec, &leftVec);
@@ -265,7 +268,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			pos.x() = state.position[0] * 0.01f;
 			pos.y() = state.position[1] * 0.01f;
 			pos.z() = state.position[2] * 0.01f;
-			pos -= (pos - point).dot(frontVec) * frontVec;
+			pos -= (pos - point).dot(frontVec) * frontVec / 2.0f;
 
 			sm64_mario_set_position(mario, pos.x() * 100.0f, pos.y() * 100.0f, pos.z() * 100.0f, FALSE);
 		}
