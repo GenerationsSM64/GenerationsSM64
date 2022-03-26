@@ -392,6 +392,8 @@ typedef u16 FadeT;
 typedef s32 FadeT;
 #endif
 
+f32 gGlobalVolume = 1.0f;
+
 // some sort of main thread -> sound thread dispatchers
 extern void func_802ad728(u32 bits, f32 arg);
 extern void func_802ad74c(u32 bits, u32 arg);
@@ -1239,7 +1241,7 @@ static f32 get_sound_volume(u8 bank, u8 soundIndex, f32 volumeRange) {
     }
 
     // Rise quadratically from 1 - volumeRange to 1
-    return volumeRange * intensity * intensity + 1.0f - volumeRange;
+    return (volumeRange * intensity * intensity + 1.0f - volumeRange) * gGlobalVolume;
 }
 
 /**

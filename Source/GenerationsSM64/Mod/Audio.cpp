@@ -6,8 +6,6 @@
 
 std::thread audioThread;
 
-extern "C" void create_next_audio_buffer(s16 * samples, u32 num_samples);
-
 void audioCallback()
 {
     constexpr auto interval = std::chrono::duration_cast<std::chrono::high_resolution_clock::duration>(std::chrono::duration<double>(1.0 / 30.0));
@@ -23,6 +21,12 @@ void audioCallback()
         current = std::chrono::high_resolution_clock::now();
         if (current < next)
             continue;
+
+        char* soundModuleManager = *(char**)0x1E77290;
+        if (soundModuleManager)
+            gGlobalVolume = *(float*)(soundModuleManager + 0x3C);
+        else
+            gGlobalVolume = 0.63f;
 
         audio_signal_game_loop_tick();
 
