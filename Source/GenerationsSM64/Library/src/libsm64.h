@@ -44,13 +44,19 @@ struct SM64MarioState
     uint8_t isUpdateFrame;
 };
 
-struct SM64MarioGeometryBuffers
+struct SM64MarioGeometryBuffer
 {
     float *position;
     float *normal;
     float *color;
     float *uv;
     uint16_t numTrianglesUsed;
+};
+
+struct SM64MarioGeometryBuffers
+{
+    struct SM64MarioGeometryBuffer opaque;
+    struct SM64MarioGeometryBuffer punchThrough;
 };
 
 typedef void (*SM64DebugPrintFunctionPtr)( const char * );

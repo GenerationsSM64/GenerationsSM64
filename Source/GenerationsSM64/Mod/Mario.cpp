@@ -35,6 +35,48 @@ void computeMarioPositionAndRotation(hh::math::CVector& position, hh::math::CQua
 	rotation = Eigen::AngleAxisf(state.interpolatedFaceAngle, Eigen::Vector3f::UnitY());
 }
 
+void updateMarioMesh(void* meshData, const SM64MarioGeometryBuffer& buffer)
+{
+	if (buffer.numTrianglesUsed == 0)
+	{
+		// Set index count to 0.
+		*(size_t*)((char*)meshData + 12) = 0;
+		return;
+	}
+
+	auto vertexBuffer = *(DX_PATCH::IDirect3DVertexBuffer9**)((char*)meshData + 44);
+	const size_t vertexCount = (size_t)buffer.numTrianglesUsed * 3;
+
+	struct Vertex
+	{
+		float position[3];
+		float color[3];
+		float normal[3];
+		float uv[2];
+	};
+
+	Vertex* vertices;
+	vertexBuffer->Lock(0, vertexCount * sizeof(Vertex), (void**)&vertices, 0);
+
+	for (size_t i = 0; i < vertexCount; i++)
+	{
+		vertices[i].position[0] = (buffer.position[i * 3 + 0] - state.interpolatedGfxPosition[0]) * 0.01f;
+		vertices[i].position[1] = (buffer.position[i * 3 + 1] - state.interpolatedGfxPosition[1]) * 0.01f;
+		vertices[i].position[2] = (buffer.position[i * 3 + 2] - state.interpolatedGfxPosition[2]) * 0.01f;
+
+		memcpy(vertices[i].color, &buffer.color[i * 3], sizeof(vertices[i].color));
+		memcpy(vertices[i].normal, &buffer.normal[i * 3], sizeof(vertices[i].normal));
+		memcpy(vertices[i].uv, &buffer.uv[i * 2], sizeof(vertices[i].uv));
+	}
+
+	vertexBuffer->Unlock();
+
+	// Set index count.
+	// D3D9 has 6 indices per triangle, last 3 being the degenerate triangle.
+	// D3D11 has 4 indices per triangle, last one being the restart index.
+	*(size_t*)((char*)meshData + 12) = useRestartIndices ? vertexCount + buffer.numTrianglesUsed - 1 : vertexCount * 2 - 3;
+}
+
 void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& updateInfo)
 {
 	const auto playerContext = static_cast<Sonic::Player::CPlayerSpeedContext*>(player->m_spContext.get());
@@ -270,39 +312,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	// Update model data with the new buffers.
 	// TODO: Map structures in BlueBlur to make this look cleaner.
 	void* meshGroupData = **(void***)((char*)modelData.get() + 24);
-	void* meshData = **(void***)((char*)meshGroupData + 16);
-	auto vertexBuffer = *(DX_PATCH::IDirect3DVertexBuffer9**)((char*)meshData + 44);
-
-	const size_t vertexCount = (size_t)buffers.numTrianglesUsed * 3;
-
-	struct Vertex
-	{
-		float position[3];
-		float color[3];
-		float normal[3];
-		float uv[2];
-	};
-
-	Vertex* vertices;
-	vertexBuffer->Lock(0, vertexCount * sizeof(Vertex), (void**)&vertices, 0);
-
-	for (size_t i = 0; i < vertexCount; i++)
-	{
-		vertices[i].position[0] = (buffers.position[i * 3 + 0] - state.interpolatedGfxPosition[0]) * 0.01f;
-		vertices[i].position[1] = (buffers.position[i * 3 + 1] - state.interpolatedGfxPosition[1]) * 0.01f;
-		vertices[i].position[2] = (buffers.position[i * 3 + 2] - state.interpolatedGfxPosition[2]) * 0.01f;
-
-		memcpy(vertices[i].color, &buffers.color[i * 3], sizeof(vertices[i].color));
-		memcpy(vertices[i].normal, &buffers.normal[i * 3], sizeof(vertices[i].normal));
-		memcpy(vertices[i].uv, &buffers.uv[i * 2], sizeof(vertices[i].uv));
-	}
-
-	vertexBuffer->Unlock();
-
-	// Set index count.
-	// D3D9 has 6 indices per triangle, last 3 being the degenerate triangle.
-	// D3D11 has 4 indices per triangle, last one being the restart index.
-	*(size_t*)((char*)meshData + 12) = useRestartIndices ? vertexCount + buffers.numTrianglesUsed - 1 : vertexCount * 2 - 3;
+	updateMarioMesh(**(void***)((char*)meshGroupData + 16), buffers.opaque);
+	updateMarioMesh(**(void***)((char*)meshGroupData + 48), buffers.punchThrough);
 
 	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(
 		state.interpolatedGfxPosition[0] * 0.01f, state.interpolatedGfxPosition[1] * 0.01f + animOffset, state.interpolatedGfxPosition[2] * 0.01f));
@@ -408,10 +419,18 @@ void initMario()
 	INSTALL_HOOK(ProcMsgSetPosition);
 	INSTALL_HOOK(SetSticks);
 
-	buffers.position = new float[9 * SM64_GEO_MAX_TRIANGLES];
-	buffers.color = new float[9 * SM64_GEO_MAX_TRIANGLES];
-	buffers.normal = new float[9 * SM64_GEO_MAX_TRIANGLES];
-	buffers.uv = new float[6 * SM64_GEO_MAX_TRIANGLES];
+	// Allocate a continuous vertex buffer and give parts of it to vertex elements.
+	const auto bufferHeap = new float[(3 + 3 + 3 + 2) * 3 * SM64_GEO_MAX_TRIANGLES * 2];
+
+	buffers.opaque.position = &bufferHeap[0];
+	buffers.opaque.normal = &buffers.opaque.position[9 * SM64_GEO_MAX_TRIANGLES];
+	buffers.opaque.color = &buffers.opaque.normal[9 * SM64_GEO_MAX_TRIANGLES];
+	buffers.opaque.uv = &buffers.opaque.color[9 * SM64_GEO_MAX_TRIANGLES];
+
+	buffers.punchThrough.position = &buffers.opaque.uv[6 * SM64_GEO_MAX_TRIANGLES];
+	buffers.punchThrough.normal = &buffers.punchThrough.position[9 * SM64_GEO_MAX_TRIANGLES];
+	buffers.punchThrough.color = &buffers.punchThrough.normal[9 * SM64_GEO_MAX_TRIANGLES];
+	buffers.punchThrough.uv = &buffers.punchThrough.color[9 * SM64_GEO_MAX_TRIANGLES];
 }
 
 extern "C" __declspec(dllexport) void PostInit()

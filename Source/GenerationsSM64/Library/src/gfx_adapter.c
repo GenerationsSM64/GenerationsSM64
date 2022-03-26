@@ -17,11 +17,21 @@ static float s_texWidth;
 static float s_texHeight;
 
 static struct SM64MarioGeometryBuffers *s_outBuffers;
+static struct SM64MarioGeometryBuffer *s_outBuffer;
 
 static float *s_trianglePtr;
 static float *s_colorPtr;
 static float *s_normalPtr;
 static float *s_uvPtr;
+
+static void bind_output_buffer(struct SM64MarioGeometryBuffer* outBuffer)
+{
+    s_outBuffer = outBuffer;
+    s_trianglePtr = outBuffer->position + (u32)outBuffer->numTrianglesUsed * 9;
+    s_colorPtr = outBuffer->color + (u32)outBuffer->numTrianglesUsed * 9;
+    s_normalPtr = outBuffer->normal + (u32)outBuffer->numTrianglesUsed * 9;
+    s_uvPtr = outBuffer->uv + (u32)outBuffer->numTrianglesUsed * 6;
+}
 
 static void mtxf_mul_vec3f_x(Mat4 mtx, Vec3f b, float w, Vec3f out)
 {
@@ -32,8 +42,8 @@ static void mtxf_mul_vec3f_x(Mat4 mtx, Vec3f b, float w, Vec3f out)
 
 static void convert_uv_to_atlas( float *atlas_uv_out, short tc[] )
 {
-    float u = (float)((tc[0] * s_scaleS >> 16) - 8*s_uls) / 32.0f / s_texWidth;
-    float v = (float)((tc[1] * s_scaleT >> 16) - 8*s_ult) / 32.0f / s_texHeight;
+    float u = (((tc[0] * s_scaleS >> 16) - 8*s_uls) / 32.0f + 0.5f) / s_texWidth;
+    float v = (((tc[1] * s_scaleT >> 16) - 8*s_ult) / 32.0f + 0.5f) / s_texHeight;
 
     atlas_uv_out[0] = u * s_texWidth / 64.0f / (float)NUM_USED_TEXTURES + (float)s_textureIndex / (float)NUM_USED_TEXTURES;
     atlas_uv_out[1] = v * s_texHeight / 64.0f;
@@ -122,7 +132,7 @@ static void process_display_list( void *dl )
                     *s_uvPtr++ = 1.0f;
                 }
 
-                s_outBuffers->numTrianglesUsed = (uint16_t)((s_trianglePtr - s_outBuffers->position) / 9);
+                s_outBuffer->numTrianglesUsed = (uint16_t)((s_trianglePtr - s_outBuffer->position) / 9);
 
                 break;
             }
@@ -164,6 +174,7 @@ static void process_display_list( void *dl )
                 s_texWidth = mario_tex_widths[s_textureIndex];
                 s_texHeight = mario_tex_heights[s_textureIndex];
 
+                bind_output_buffer(i == mario_texture_wings_half_1 || i == mario_texture_wings_half_2 ? &s_outBuffers->punchThrough : &s_outBuffers->opaque);
                 break;
             }
 
@@ -209,9 +220,7 @@ void gSPDisplayList( void *pkt, struct DisplayListNode *dl )
 void gfx_adapter_bind_output_buffers( struct SM64MarioGeometryBuffers *outBuffers )
 {
     s_outBuffers = outBuffers;
-    s_trianglePtr = s_outBuffers->position;
-    s_colorPtr = s_outBuffers->color;
-    s_normalPtr = s_outBuffers->normal;
-    s_uvPtr = s_outBuffers->uv;
-    s_outBuffers->numTrianglesUsed = 0;
+    s_outBuffers->opaque.numTrianglesUsed = 0;
+    s_outBuffers->punchThrough.numTrianglesUsed = 0;
+    bind_output_buffer(&s_outBuffers->opaque);
 }
