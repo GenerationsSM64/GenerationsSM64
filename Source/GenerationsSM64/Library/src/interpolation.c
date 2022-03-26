@@ -30,6 +30,10 @@ u8 get_interpolation_should_update(void) {
     return interpolationOffset == 0;
 }
 
+u8 get_interpolation_gonna_update(void) {
+    return interpolationOffset == (interpolationInterval - 1);
+}
+
 f32 f32_interpolate(f32 a, f32 b) {
     return a * interpolationFactorA + b * interpolationFactorB;
 }

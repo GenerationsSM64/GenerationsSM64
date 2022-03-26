@@ -201,6 +201,8 @@ struct GraphNodeTranslationRotation
     /*0x14*/ void *displayList;
     /*0x18*/ Vec3s translation;
     /*0x1E*/ Vec3s rotation;
+    Vec3f prevTranslation;
+    Vec3s prevRotation;
 };
 
 /** GraphNode that translates itself and its children.
@@ -213,6 +215,7 @@ struct GraphNodeTranslation
     /*0x14*/ void *displayList;
     /*0x18*/ Vec3s translation;
     u8 pad1E[2];
+    Vec3f prevTranslation;
 };
 
 /** GraphNode that rotates itself and its children.
@@ -226,6 +229,7 @@ struct GraphNodeRotation
     /*0x14*/ void *displayList;
     /*0x18*/ Vec3s rotation;
     u8 pad1E[2];
+    Vec3s prevRotation;
 };
 
 /** GraphNode part that transforms itself and its children based on animation
@@ -240,6 +244,7 @@ struct GraphNodeAnimatedPart
     /*0x00*/ struct GraphNode node;
     /*0x14*/ void *displayList;
     /*0x18*/ Vec3s translation;
+    Vec3f prevTranslation;
 };
 
 /** A GraphNode that draws a display list rotated in a way to always face the
@@ -276,6 +281,7 @@ struct GraphNodeScale
     /*0x00*/ struct GraphNode node;
     /*0x14*/ void *displayList;
     /*0x18*/ f32 scale;
+    f32 prevScale;
 };
 
 /** GraphNode that draws a shadow under an object.

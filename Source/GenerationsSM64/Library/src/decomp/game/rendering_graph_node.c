@@ -14,9 +14,9 @@
 #include "../shim.h"
 #include "../../gfx_adapter.h"
 
-
-
 #include "../mario/model.inc.h"
+
+#include "../../interpolation.h"
 
 
 // PATCH
@@ -371,10 +371,19 @@ static void geo_process_camera(struct GraphNodeCamera *node) {
 static void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node) {
     Mat4 mtxf;
     Vec3f translation;
+    Vec3s rotation;
     Mtx *mtx = alloc_display_list(sizeof(*mtx));
 
     vec3s_to_vec3f(translation, node->translation);
-    mtxf_rotate_zxy_and_translate(mtxf, translation, node->rotation);
+    vec3f_interpolate(translation, node->prevTranslation, translation);
+    vec3s_angle_interpolate(rotation, node->prevRotation, node->rotation);
+
+    if (get_interpolation_gonna_update()) {
+        vec3s_to_vec3f(node->prevTranslation, node->translation);
+        vec3s_copy(node->prevRotation, node->rotation);
+    }
+
+    mtxf_rotate_zxy_and_translate(mtxf, translation, rotation);
     mtxf_mul(gMatStack[gMatStackIndex + 1], mtxf, gMatStack[gMatStackIndex]);
     gMatStackIndex++;
     mtxf_to_mtx(mtx, gMatStack[gMatStackIndex]);
@@ -399,6 +408,11 @@ static void geo_process_translation(struct GraphNodeTranslation *node) {
     Mtx *mtx = alloc_display_list(sizeof(*mtx));
 
     vec3s_to_vec3f(translation, node->translation);
+    vec3f_interpolate(translation, node->prevTranslation, translation);
+
+    if (get_interpolation_gonna_update())
+        vec3s_to_vec3f(node->prevTranslation, node->translation);
+
     mtxf_rotate_zxy_and_translate(mtxf, translation, gVec3sZero);
     mtxf_mul(gMatStack[gMatStackIndex + 1], mtxf, gMatStack[gMatStackIndex]);
     gMatStackIndex++;
@@ -420,9 +434,14 @@ static void geo_process_translation(struct GraphNodeTranslation *node) {
  */
 static void geo_process_rotation(struct GraphNodeRotation *node) {
     Mat4 mtxf;
+    Vec3s rotation;
     Mtx *mtx = alloc_display_list(sizeof(*mtx));
 
-    mtxf_rotate_zxy_and_translate(mtxf, gVec3fZero, node->rotation);
+    vec3s_angle_interpolate(rotation, node->prevRotation, node->rotation);
+    if (get_interpolation_gonna_update())
+        vec3s_copy(node->prevRotation, node->rotation);
+
+    mtxf_rotate_zxy_and_translate(mtxf, gVec3fZero, rotation);
     mtxf_mul(gMatStack[gMatStackIndex + 1], mtxf, gMatStack[gMatStackIndex]);
     gMatStackIndex++;
     mtxf_to_mtx(mtx, gMatStack[gMatStackIndex]);
@@ -443,10 +462,15 @@ static void geo_process_rotation(struct GraphNodeRotation *node) {
  */
 static void geo_process_scale(struct GraphNodeScale *node) {
     UNUSED Mat4 transform;
+    f32 scale;
     Vec3f scaleVec;
     Mtx *mtx = alloc_display_list(sizeof(*mtx));
 
-    vec3f_set(scaleVec, node->scale, node->scale, node->scale);
+    scale = f32_interpolate(node->prevScale, node->scale);
+    if (get_interpolation_gonna_update())
+        node->prevScale = node->scale;
+
+    vec3f_set(scaleVec, scale, scale, scale);
     mtxf_scale_vec3f(gMatStack[gMatStackIndex + 1], gMatStack[gMatStackIndex], scaleVec);
     gMatStackIndex++;
     mtxf_to_mtx(mtx, gMatStack[gMatStackIndex]);
@@ -643,9 +667,16 @@ static void geo_process_animated_part(struct GraphNodeAnimatedPart *node) {
     vec3f_interpolate(currTranslation, prevTranslation, currTranslation);
     vec3s_angle_interpolate(currRotation, prevRotation, currRotation);
 
-    currTranslation[0] += node->translation[0];
-    currTranslation[1] += node->translation[1];
-    currTranslation[2] += node->translation[2];
+    Vec3f translation;
+    vec3s_to_vec3f(translation, node->translation);
+    vec3f_interpolate(translation, node->prevTranslation, translation);
+
+    if (get_interpolation_gonna_update())
+        vec3s_to_vec3f(node->prevTranslation, node->translation);
+
+    currTranslation[0] += translation[0];
+    currTranslation[1] += translation[1];
+    currTranslation[2] += translation[2];
 
     mtxf_rotate_xyz_and_translate(matrix, currTranslation, currRotation);
     mtxf_mul(gMatStack[gMatStackIndex + 1], matrix, gMatStack[gMatStackIndex]);
