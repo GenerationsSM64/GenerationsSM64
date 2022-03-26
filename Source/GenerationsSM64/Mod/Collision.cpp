@@ -161,8 +161,13 @@ extern "C" f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface** pfloor)
 	return height;
 }
 
+bool disableWallCollision;
+
 extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 {
+	if (disableWallCollision)
+		return 0;
+
 	hh::math::CQuaternion orientation;
 	orientation = Eigen::AngleAxisf(state.faceAngle, Eigen::Vector3f::UnitY());
 

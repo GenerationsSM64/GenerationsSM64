@@ -8,6 +8,8 @@ extern size_t marioTextureSize;
 
 extern SM64MarioState state;
 
+extern bool disableWallCollision;
+
 extern void initSM64(const std::string& romFilePath);
 extern void initAudio(const std::string& directoryPath);
 extern void initDatabase();
