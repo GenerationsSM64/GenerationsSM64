@@ -1,4 +1,5 @@
 #include "Mod.h"
+#include "Util.h"
 
 bool rayCast(hh::math::CVector const& begin, hh::math::CVector const& end,
              hh::math::CVector& position, hh::math::CVector& normal, uint32_t filter
@@ -72,8 +73,25 @@ Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& dir
 
 extern "C" f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface** pceil)
 {
+	s32 flags = 20;
+
+	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	if (playerContext)
+	{
+		const hh::math::CVector position(posX * 0.01f, posY * 0.01f, posZ * 0.01f);
+
+		// Check for a one-way object.
+		RayCastQuery query;
+		if (rayCastRigidBody(playerContext, query, position, position + hh::math::CVector(0, 4.0f, 0)))
+		{
+			// Compare collision type.
+			if (query.rigidBody && *(size_t*)((char*)query.rigidBody + 12) == *(size_t*)0x1E61C30) // onewayCollisionType
+				flags |= 1; // Exclude objects.
+		}
+	}
+
 	f32 height = limit;
-	*pceil = rayCast(posX, posY, posZ, &height, hh::math::CVector::UnitY()); // Cast a ray upwards.
+	*pceil = rayCast(posX, posY, posZ, &height, hh::math::CVector::UnitY(), flags, 0.0f); // Cast a ray upwards.
 	return height;
 }
 
