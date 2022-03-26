@@ -14,8 +14,8 @@ SM64MarioInputs inputs;
 SM64MarioState state;
 SM64MarioGeometryBuffers buffers;
 boost::shared_ptr<hh::mr::CModelData> modelData;
+bool useRestartIndices;
 boost::shared_ptr<hh::mr::CSingleElement> renderable;
-size_t previousTriangleCount;
 float controlSonicTimer;
 bool controlSonicGrounded;
 
@@ -273,6 +273,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	void* meshData = **(void***)((char*)meshGroupData + 16);
 	auto vertexBuffer = *(DX_PATCH::IDirect3DVertexBuffer9**)((char*)meshData + 44);
 
+	const size_t vertexCount = (size_t)buffers.numTrianglesUsed * 3;
+
 	struct Vertex
 	{
 		float position[3];
@@ -282,9 +284,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	};
 
 	Vertex* vertices;
-	vertexBuffer->Lock(0, 0, (void**)&vertices, 0);
+	vertexBuffer->Lock(0, vertexCount * sizeof(Vertex), (void**)&vertices, 0);
 
-	for (size_t i = 0; i < (size_t)buffers.numTrianglesUsed * 3; i++)
+	for (size_t i = 0; i < vertexCount; i++)
 	{
 		vertices[i].position[0] = (buffers.position[i * 3 + 0] - state.interpolatedGfxPosition[0]) * 0.01f;
 		vertices[i].position[1] = (buffers.position[i * 3 + 1] - state.interpolatedGfxPosition[1]) * 0.01f;
@@ -295,13 +297,12 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		memcpy(vertices[i].uv, &buffers.uv[i * 2], sizeof(vertices[i].uv));
 	}
 
-	// Clear remnants
-	if (previousTriangleCount > buffers.numTrianglesUsed)
-		memset(&vertices[(size_t)buffers.numTrianglesUsed * 3], 0, (previousTriangleCount - buffers.numTrianglesUsed) * 3 * sizeof(Vertex));
-
-	previousTriangleCount = buffers.numTrianglesUsed;
-
 	vertexBuffer->Unlock();
+
+	// Set index count.
+	// D3D9 has 6 indices per triangle, last 3 being the degenerate triangle.
+	// D3D11 has 4 indices per triangle, last one being the restart index.
+	*(size_t*)((char*)meshData + 12) = useRestartIndices ? vertexCount + buffers.numTrianglesUsed - 1 : vertexCount * 2 - 3;
 
 	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(
 		state.interpolatedGfxPosition[0] * 0.01f, state.interpolatedGfxPosition[1] * 0.01f + animOffset, state.interpolatedGfxPosition[2] * 0.01f));
@@ -411,4 +412,10 @@ void initMario()
 	buffers.color = new float[9 * SM64_GEO_MAX_TRIANGLES];
 	buffers.normal = new float[9 * SM64_GEO_MAX_TRIANGLES];
 	buffers.uv = new float[6 * SM64_GEO_MAX_TRIANGLES];
+}
+
+extern "C" __declspec(dllexport) void PostInit()
+{
+	// D3D11 mod uses restart indices for index data.
+	useRestartIndices = GetModuleHandle(TEXT("GenerationsD3D11.dll")) != nullptr;
 }
