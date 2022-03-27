@@ -380,6 +380,16 @@ HOOK(void, __fastcall, ProcMsgSetPosition, 0xE772D0, Sonic::Player::CPlayer* Thi
 	originalProcMsgSetPosition(This, Edx, msgSetPosition);
 }
 
+HOOK(void, __fastcall, ProcMsgRestartStage, 0xE76810, Sonic::Player::CPlayer* This, void* Edx, hh::fnd::Message& message)
+{
+	if (mario >= 0)
+	{
+		sm64_mario_delete(mario);
+		mario = -1;
+	}
+	originalProcMsgRestartStage(This, Edx, message);
+}
+
 constexpr double DEAD_ZONE = 0.3;
 
 HOOK(void, __cdecl, SetSticks, 0x9C6AE0, char* data, short lowerBound, short upperBound)
@@ -422,6 +432,7 @@ void initMario()
 	INSTALL_HOOK(CSonicClassicUpdateParallel);
 	INSTALL_HOOK(CPlayerAddCallback);
 	INSTALL_HOOK(ProcMsgSetPosition);
+	INSTALL_HOOK(ProcMsgRestartStage);
 	INSTALL_HOOK(SetSticks);
 
 	// Allocate a continuous vertex buffer and give parts of it to vertex elements.
