@@ -205,6 +205,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		else if (strstr(animName.c_str(), "Grind"))
 			animId = MARIO_ANIM_RIDING_SHELL;
 
+		else if (strstr(animName.c_str(), "Result") && strstr(animName.c_str(), "_Link"))
+			animId = MARIO_ANIM_STAR_DANCE;
+
 		if (animId >= 0)
 		{
 			sm64_mario_set_animation_lock(mario, true);

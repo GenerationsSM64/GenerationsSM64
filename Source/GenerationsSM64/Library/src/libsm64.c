@@ -24,6 +24,8 @@
 #include "decomp/game/rendering_graph_node.h"
 #include "decomp/mario/geo.inc.h"
 #include "decomp/game/platform_displacement.h"
+#include "decomp/include/mario_animation_ids.h"
+#include "decomp/include/mario_geo_switch_case_ids.h"
 
 #include "debug_print.h"
 #include "load_surfaces.h"
@@ -328,12 +330,26 @@ void sm64_mario_set_animation(int32_t marioId, int32_t animationID)
         return;
     }
 
+    if (!get_interpolation_should_update()) {
+        return;
+    }
+
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
     u32 tmp = gMarioState->animation->locked;
     gMarioState->animation->locked = FALSE;
     set_mario_animation(gMarioState, animationID);
     gMarioState->animation->locked = tmp;
+
+    if (animationID == MARIO_ANIM_STAR_DANCE) {
+        gMarioState->marioBodyState->handState = gMarioObject->header.gfx.animInfo.animFrame >= 40 ? MARIO_HAND_PEACE_SIGN : MARIO_HAND_FISTS;
+
+        if (gMarioObject->header.gfx.animInfo.animFrame == 42) {
+            play_sound(SOUND_MARIO_HERE_WE_GO, gMarioObject->header.gfx.cameraToObject);
+        }
+    } else {
+        gMarioState->marioBodyState->handState = MARIO_HAND_FISTS;
+    }
 }
 
 void sm64_mario_set_animation_lock(int32_t marioId, uint32_t locked)

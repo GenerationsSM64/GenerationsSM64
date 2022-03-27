@@ -700,16 +700,9 @@ void geo_set_animation_globals(struct AnimInfo *node, s32 hasAnimation) {
     struct Animation *anim = node->curAnim;
 
     if (hasAnimation && get_interpolation_should_update()) {
-        node->prevAnimFrame = node->animFrame;
         node->animFrame = geo_update_animation_frame(node, &node->animFrameAccelAssist);
-
-        if (node->animID != node->prevAnimID || node->curAnim != node->prevAnim) {
-            node->prevAnimFrame = node->animFrame;
-        }
-
-        node->prevAnimID = node->animID;
-        node->prevAnim = node->curAnim;
     }
+
     node->animTimer = gAreaUpdateCounter;
     if (anim->flags & ANIM_FLAG_HOR_TRANS) {
         gCurAnimType = ANIM_TYPE_VERTICAL_TRANSLATION;
@@ -722,7 +715,13 @@ void geo_set_animation_globals(struct AnimInfo *node, s32 hasAnimation) {
     }
 
     gCurrAnimFrame = node->animFrame;
-    gPrevAnimFrame = node->prevAnimFrame;
+
+    if (node->prevAnimID == node->animID && node->prevAnim == anim) {
+        gPrevAnimFrame = node->prevAnimFrame;
+    } else {
+        gPrevAnimFrame = node->animFrame;
+    }
+
     gCurAnimEnabled = (anim->flags & ANIM_FLAG_5) == 0;
     gCurrAnimAttribute = segmented_to_virtual((void *) anim->index);
     gCurAnimData = segmented_to_virtual((void *) anim->values);
@@ -732,6 +731,13 @@ void geo_set_animation_globals(struct AnimInfo *node, s32 hasAnimation) {
     } else {
         gCurAnimTranslationMultiplier = (f32) node->animYTrans / (f32) anim->animYTransDivisor;
     }
+
+    if (get_interpolation_gonna_update() || node->prevAnimID != node->animID || node->prevAnim != anim) {
+        node->prevAnimFrame = node->animFrame;
+    }
+
+    node->prevAnimID = node->animID;
+    node->prevAnim = anim;
 }
 
 /**

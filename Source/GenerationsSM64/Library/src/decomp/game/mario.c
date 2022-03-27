@@ -1563,7 +1563,11 @@ void mario_reset_bodystate(struct MarioState *m) {
 
     bodyState->capState = MARIO_HAS_DEFAULT_CAP_OFF;
     bodyState->eyeState = MARIO_EYES_BLINK;
-    bodyState->handState = MARIO_HAND_FISTS;
+
+    if (!m->animation->locked) {
+        bodyState->handState = MARIO_HAND_FISTS;
+    }
+
     bodyState->modelState = 0;
     bodyState->wingFlutter = FALSE;
 
