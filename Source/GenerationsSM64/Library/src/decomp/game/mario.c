@@ -38,6 +38,7 @@
 // #include "sound_init.h"
 // #include "thread6.h"
 #include "../../load_anim_data.h"
+#include "../include/mario_animation_ids.h"
 
 
 static f32 gDefaultSoundArgs[3] = { 0.0f, 0.0f, 0.0f };

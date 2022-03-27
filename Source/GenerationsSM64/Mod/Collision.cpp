@@ -154,7 +154,18 @@ extern "C" f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface** pfloor)
 			surface->terrain = TERRAIN_GRASS;
 			surface->type = SURFACE_NOISE_DEFAULT;
 			break;
+
+		case 19: // Lava
+			if (!playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_InvokeFlameBarrier])
+				surface->type = SURFACE_BURNING;
+
+			break;
 		}
+
+		const auto& stateName = playerContext->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
+
+		if (stateName == "OnIce")
+			surface->type = SURFACE_ICE;
 	}
 
 	*pfloor = surface;

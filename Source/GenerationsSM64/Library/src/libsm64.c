@@ -397,7 +397,7 @@ void sm64_mario_take_damage(int32_t marioId)
 
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
-    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE)) {
+    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE) && gMarioState->action != ACT_LAVA_BOOST && gMarioState->action != ACT_LAVA_BOOST_LAND) {
         u32 action = ACT_FORWARD_GROUND_KB;
 
         if (gMarioState->action & (ACT_FLAG_SWIMMING | ACT_FLAG_METAL_WATER)) {
@@ -408,7 +408,7 @@ void sm64_mario_take_damage(int32_t marioId)
         }
 
         play_sound(SOUND_MARIO_ATTACKED, gMarioObject->header.gfx.cameraToObject);
-        set_mario_action(gMarioState, ACT_LAVA_BOOST, 1);
+        set_mario_action(gMarioState, action, 1);
     }
 }
 
@@ -454,6 +454,17 @@ extern void sm64_mario_set_external_control(int32_t marioId, uint8_t value)
 
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
     gMarioState->externalControl = value;
+}
+
+uint8_t sm64_mario_is_lava_boost(int32_t marioId)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
+        DEBUG_PRINT("Tried to get lava boost status of non-existant Mario with ID: %u", marioId);
+        return FALSE;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+    return gMarioState->action == ACT_LAVA_BOOST;
 }
 
 uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject )

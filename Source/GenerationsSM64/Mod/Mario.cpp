@@ -106,14 +106,17 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	bool controlSonic =
 		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl] ||
 		stateName == "HangOn" ||
-		strstr(stateName.c_str(), "ExternalControl") ||
-		stateName == "SpecialJump" ||
-		strstr(stateName.c_str(), "Homing") ||
-		strstr(stateName.c_str(), "Grind") ||
 		stateName == "JumpSpring" ||
-		strstr(stateName.c_str(), "Rocket") ||
 		stateName == "LightSpeedDash" ||
-		stateName == "TramRiding";
+		stateName == "SpecialJump" ||
+		stateName == "TramRiding" ||
+		strstr(stateName.c_str(), "ExternalControl") ||
+		strstr(stateName.c_str(), "Grind") ||
+		strstr(stateName.c_str(), "Homing") ||
+		strstr(stateName.c_str(), "Pipe") ||
+		strstr(stateName.c_str(), "Rocket");
+
+	controlSonic &= !sm64_mario_is_lava_boost(mario);
 
 	if (controlSonic)
 	{
@@ -331,6 +334,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(
 		state.interpolatedGfxPosition[0] * 0.01f, state.interpolatedGfxPosition[1] * 0.01f + animOffset, state.interpolatedGfxPosition[2] * 0.01f));
+
+	if (!playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] && *((bool*)playerContext + 0x112C))
+		renderable->m_spInstanceInfo->m_Transform *= Eigen::Scaling(0.0f); 
 }
 
 HOOK(void, __fastcall, CGameplayFlowStageOnExit, 0xD05360, void* This)
