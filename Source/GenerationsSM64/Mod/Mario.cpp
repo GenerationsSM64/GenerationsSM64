@@ -131,10 +131,15 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		if (playerContext->m_Grounded != controlSonicGrounded)
 			controlSonicTimer = 0.0f;
 
-		else 
+		else
 		{
 			controlSonic = true;
 			controlSonicTimer -= updateInfo.DeltaTime;
+
+			// If Sonic is pointing down after losing control (eg. in the middle of a loop),
+			// let him control for a little longer, otherwise Mario is going to clip through the ceiling.
+			if (playerContext->m_UpVector.y() <= 0.0f)
+				controlSonicTimer = max(0.25f, controlSonicTimer);
 		}
 	}
 
