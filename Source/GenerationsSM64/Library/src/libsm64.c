@@ -175,8 +175,7 @@ int32_t sm64_mario_create( float x, float y, float z )
 
 void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, struct SM64MarioState *outState, struct SM64MarioGeometryBuffers *outBuffers )
 {
-    if( marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL )
-    {
+    if( marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL ) {
         DEBUG_PRINT("Tried to tick non-existant Mario with ID: %u", marioId);
         return;
     }
@@ -243,8 +242,7 @@ void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, str
 
 void sm64_mario_delete( int32_t marioId )
 {
-    if( marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL )
-    {
+    if( marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL ) {
         DEBUG_PRINT("Tried to delete non-existant Mario with ID: %u", marioId);
         return;
     }
@@ -261,8 +259,7 @@ void sm64_mario_delete( int32_t marioId )
 
 void sm64_mario_set_position(int32_t marioId, float x, float y, float z, uint8_t overrideHistory)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to set position of non-existant Mario with ID: %u", marioId);
         return;
     }
@@ -282,8 +279,7 @@ void sm64_mario_set_position(int32_t marioId, float x, float y, float z, uint8_t
 
 void sm64_mario_set_velocity(int32_t marioId, float x, float y, float z, float forwardVel)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to set velocity of non-existant Mario with ID: %u", marioId);
         return;
     }
@@ -297,8 +293,7 @@ void sm64_mario_set_velocity(int32_t marioId, float x, float y, float z, float f
 
 void sm64_mario_set_health(int32_t marioId, int16_t health)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to set health of non-existant Mario with ID: %u", marioId);
         return;
     }
@@ -310,8 +305,7 @@ void sm64_mario_set_health(int32_t marioId, int16_t health)
 
 void sm64_mario_set_face_angle(int32_t marioId, float x, float y, float z)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to set face angle of non-existant Mario with ID: %u", marioId);
         return;
     }
@@ -329,8 +323,7 @@ void sm64_mario_set_face_angle(int32_t marioId, float x, float y, float z)
 
 void sm64_mario_set_animation(int32_t marioId, int32_t animationID)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to set animation of non-existant Mario with ID: %u", marioId);
         return;
     }
@@ -345,8 +338,7 @@ void sm64_mario_set_animation(int32_t marioId, int32_t animationID)
 
 void sm64_mario_set_animation_lock(int32_t marioId, uint32_t locked)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to set animation lock of non-existant Mario with ID: %u", marioId);
         return;
     }
@@ -358,8 +350,7 @@ void sm64_mario_set_animation_lock(int32_t marioId, uint32_t locked)
 
 void sm64_mario_toggle_wing_cap(int32_t marioId)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to set wing cap of non-existant Mario with ID: %u", marioId);
         return;
     }
@@ -383,16 +374,14 @@ void sm64_mario_toggle_wing_cap(int32_t marioId)
 
 void sm64_mario_take_damage(int32_t marioId)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to damage non-existant Mario with ID: %u", marioId);
         return;
     }
 
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
-    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE))
-    {
+    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE)) {
         u32 action = ACT_FORWARD_GROUND_KB;
 
         if (gMarioState->action & (ACT_FLAG_SWIMMING | ACT_FLAG_METAL_WATER)) {
@@ -403,14 +392,13 @@ void sm64_mario_take_damage(int32_t marioId)
         }
 
         play_sound(SOUND_MARIO_ATTACKED, gMarioObject->header.gfx.cameraToObject);
-        set_mario_action(gMarioState, action, 1);
+        set_mario_action(gMarioState, ACT_LAVA_BOOST, 1);
     }
 }
 
 uint8_t sm64_mario_attacking(int32_t marioId)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to get attacking status of non-existant Mario with ID: %u", marioId);
         return FALSE;
     }
@@ -421,8 +409,7 @@ uint8_t sm64_mario_attacking(int32_t marioId)
 
 uint8_t sm64_mario_diving(int32_t marioId)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to get diving status of non-existant Mario with ID: %u", marioId);
         return FALSE;
     }
@@ -433,14 +420,24 @@ uint8_t sm64_mario_diving(int32_t marioId)
 
 void sm64_mario_set_camera_to_object(int32_t marioId, float x, float y, float z)
 {
-    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL)
-    {
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
         DEBUG_PRINT("Tried to set camera to object position of non-existant Mario with ID: %u", marioId);
         return;
     }
 
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
     vec3f_set(gMarioObject->header.gfx.cameraToObject, x, y, z);
+}
+
+extern void sm64_mario_set_external_control(int32_t marioId, uint8_t value)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
+        DEBUG_PRINT("Tried to set external control flag of non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+    gMarioState->externalControl = value;
 }
 
 uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject )

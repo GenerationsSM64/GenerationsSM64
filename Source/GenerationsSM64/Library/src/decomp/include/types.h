@@ -363,6 +363,8 @@ struct MarioState
     Vec3f prevPos;
     Vec3f prevVel;
     Vec3s prevFaceAngle;
+
+    u8 externalControl;
 };
 
 #endif // TYPES_H

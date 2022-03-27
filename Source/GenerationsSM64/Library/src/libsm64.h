@@ -86,6 +86,7 @@ extern void sm64_mario_toggle_wing_cap(int32_t marioId);
 extern void sm64_mario_take_damage(int32_t marioId);
 extern uint8_t sm64_mario_attacking(int32_t marioId);
 extern uint8_t sm64_mario_diving(int32_t marioId);
+extern void sm64_mario_set_external_control(int32_t marioId, uint8_t value);
 
 extern uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject );
 extern void sm64_surface_object_move( uint32_t objectId, const struct SM64ObjectTransform *transform );
