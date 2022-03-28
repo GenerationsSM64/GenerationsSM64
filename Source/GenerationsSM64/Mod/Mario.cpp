@@ -125,7 +125,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			controlSonicGrounded = playerContext->m_Grounded;
 
 		// Don't let grind states allow extra control.
-		controlSonicTimer = strstr(stateName.c_str(), "Grind") ? 0.0f : 0.5f; 
+		controlSonicTimer = strstr(stateName.c_str(), "Grind") ? 0.0f : max(0.5f, 
+			min(1.0f, playerContext->m_Velocity.norm() / 100.0f));
 	}
 
 	// Allow Sonic to be in control for a little longer.

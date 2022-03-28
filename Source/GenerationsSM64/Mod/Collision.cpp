@@ -157,7 +157,10 @@ extern "C" f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface** pfloor)
 
 		case 19: // Lava
 			if (!playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_InvokeFlameBarrier])
+			{
 				surface->type = SURFACE_BURNING;
+				playerContext->m_Field164 = 0;
+			}
 
 			break;
 		}

@@ -365,6 +365,8 @@ void sm64_mario_set_animation(int32_t marioId, int32_t animationID)
     } else {
         gMarioState->marioBodyState->handState = MARIO_HAND_FISTS;
     }
+
+    gMarioState->marioBodyState->punchState = 0;
 }
 
 void sm64_mario_set_animation_lock(int32_t marioId, uint32_t locked)
