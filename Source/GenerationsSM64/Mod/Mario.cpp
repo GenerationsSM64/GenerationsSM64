@@ -322,19 +322,14 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 				pos + hh::math::CVector(0, +0.5f, 0),
 				pos + hh::math::CVector(0, -0.5f, 0)))
 			{
-				FUNCTION_PTR(bool, __thiscall, isOfType, *(size_t*)(*(size_t*)query.rigidBody + 28), void* This, size_t type);
+				const auto& rigidBodyMatrix =
+					*(hh::math::CMatrix*)(*(char**)((char*)query.rigidBody + 4) + 0xF0); // accesses hkpRigidBody?
 
-				if (isOfType(query.rigidBody, 8206)) // Movable Ground, apparently.
-				{
-					const auto& rigidBodyMatrix =
-						*(hh::math::CMatrix*)(*(char**)((char*)query.rigidBody + 4) + 0xF0); // accesses hkpRigidBody
+				if (prevRigidBody == query.rigidBody)
+					pos = rigidBodyMatrix * (prevRigidBodyMatrixInverse * pos.head<3>());
 
-					if (prevRigidBody == query.rigidBody)
-						pos = rigidBodyMatrix * (prevRigidBodyMatrixInverse * pos.head<3>());
-
-					::prevRigidBody = query.rigidBody;
-					prevRigidBodyMatrixInverse = rigidBodyMatrix.inverse();
-				}
+				::prevRigidBody = query.rigidBody;
+				prevRigidBodyMatrixInverse = rigidBodyMatrix.inverse();
 			}
 		}
 
