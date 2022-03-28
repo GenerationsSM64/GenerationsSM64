@@ -74,7 +74,8 @@ extern void sm64_global_terminate( void );
 extern void sm64_static_surfaces_load( const struct SM64Surface *surfaceArray, uint32_t numSurfaces );
 
 extern int32_t sm64_mario_create( float x, float y, float z );
-extern void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, struct SM64MarioState *outState, struct SM64MarioGeometryBuffers *outBuffers );
+extern void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, struct SM64MarioState* outState, struct SM64MarioGeometryBuffers *outBuffers );
+extern void sm64_mario_post_tick(int32_t marioId, struct SM64MarioState* outState);
 extern void sm64_mario_delete( int32_t marioId );
 extern void sm64_mario_set_position( int32_t marioId, float x, float y, float z, uint8_t overrideHistory );
 extern void sm64_mario_set_velocity( int32_t marioId, float x, float y, float z, float forwardVel );
@@ -90,6 +91,7 @@ extern void sm64_mario_set_camera_to_object(int32_t marioId, float x, float y, f
 extern void sm64_mario_set_external_control(int32_t marioId, uint8_t value);
 extern uint8_t sm64_mario_is_lava_boost(int32_t marioId);
 extern void sm64_mario_set_action(int32_t marioId, uint32_t action);
+extern uint8_t sm64_mario_is_airborne(int32_t marioId);
 
 extern uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject );
 extern void sm64_surface_object_move( uint32_t objectId, const struct SM64ObjectTransform *transform );

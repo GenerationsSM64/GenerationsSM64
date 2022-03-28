@@ -18,6 +18,8 @@ bool useRestartIndices;
 boost::shared_ptr<hh::mr::CSingleElement> renderable;
 float controlSonicTimer;
 bool controlSonicGrounded;
+Sonic::CRigidBody* prevRigidBody;
+hh::math::CMatrix prevRigidBodyMatrixInverse;
 
 void deleteMario()
 {
@@ -302,6 +304,40 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	if (state.isUpdateFrame)
 	{
+		hh::math::CVector pos;
+		pos.x() = state.position[0] * 0.01f;
+		pos.y() = state.position[1] * 0.01f;
+		pos.z() = state.position[2] * 0.01f;
+
+		Sonic::CRigidBody* prevRigidBody = ::prevRigidBody;
+		::prevRigidBody = nullptr;
+
+		if (!controlSonic && !sm64_mario_is_airborne(mario))
+		{
+			// Detect if we are on a moving rigid body.
+			// Convert Mario's position to rigid body's local space using the previous frame,
+			// then convert it back to world space using the current matrix.
+			RayCastQuery query;
+			if (rayCastRigidBody(playerContext, query,
+				pos + hh::math::CVector(0, +0.5f, 0),
+				pos + hh::math::CVector(0, -0.5f, 0)))
+			{
+				FUNCTION_PTR(bool, __thiscall, isOfType, *(size_t*)(*(size_t*)query.rigidBody + 28), void* This, size_t type);
+
+				if (isOfType(query.rigidBody, 8206)) // Movable Ground, apparently.
+				{
+					const auto& rigidBodyMatrix =
+						*(hh::math::CMatrix*)(*(char**)((char*)query.rigidBody + 4) + 0xF0); // accesses hkpRigidBody
+
+					if (prevRigidBody == query.rigidBody)
+						pos = rigidBodyMatrix * (prevRigidBodyMatrixInverse * pos.head<3>());
+
+					::prevRigidBody = query.rigidBody;
+					prevRigidBodyMatrixInverse = rigidBodyMatrix.inverse();
+				}
+			}
+		}
+
 		// Let the player to go OOB when bumpers are held.
 		if (!padState.IsDown(Sonic::eKeyState_LeftBumper) && !padState.IsDown(Sonic::eKeyState_RightBumper) &&
 			playerContext->m_Is2DMode && playerContext->m_sp2DPathController_01)
@@ -310,16 +346,16 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			getPathControllerData(playerContext->m_sp2DPathController_01.get(), &point, &upVec, &leftVec);
 
 			const auto frontVec = upVec.cross(leftVec).normalized();
-
-			hh::math::CVector pos;
-			pos.x() = state.position[0] * 0.01f;
-			pos.y() = state.position[1] * 0.01f;
-			pos.z() = state.position[2] * 0.01f;
 			pos -= (pos - point).dot(frontVec) * frontVec / 2.0f;
-
-			sm64_mario_set_position(mario, pos.x() * 100.0f, pos.y() * 100.0f, pos.z() * 100.0f, FALSE);
 		}
 
+		sm64_mario_set_position(mario, pos.x() * 100.0f, pos.y() * 100.0f, pos.z() * 100.0f, FALSE);
+	}
+
+	sm64_mario_post_tick(mario, &state);
+
+	if (state.isUpdateFrame)
+	{
 		static bool damaged;
 		const bool damaging = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] != 0;
 		const bool dead = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Dead] != 0;
@@ -331,7 +367,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		sm64_mario_set_health(mario, dead ? 0 : 0x500);
 
-		FUNCTION_PTR(void, __thiscall, changeCollision, 
+		FUNCTION_PTR(void, __thiscall, changeCollision,
 			Sonic::Player::CSonicClassicContext::GetInstance() ? 0xDC30A0 : 0xDFCD20, void* This, size_t type);
 
 		const bool attacking = sm64_mario_attacking(mario);
@@ -368,7 +404,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(
 		state.interpolatedGfxPosition[0] * 0.01f, state.interpolatedGfxPosition[1] * 0.01f + animOffset, state.interpolatedGfxPosition[2] * 0.01f));
 
-	if ((!playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] && *((bool*)playerContext + 0x112C)))
+	if (!playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] && *((bool*)playerContext + 0x112C))
 		scale = 0.0f;
 
 	renderable->m_spInstanceInfo->m_Transform *= Eigen::Scaling(scale); 

@@ -175,7 +175,7 @@ int32_t sm64_mario_create( float x, float y, float z )
     return marioIndex;
 }
 
-void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, struct SM64MarioState *outState, struct SM64MarioGeometryBuffers *outBuffers )
+void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, struct SM64MarioState* outState, struct SM64MarioGeometryBuffers *outBuffers )
 {
     if( marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL ) {
         DEBUG_PRINT("Tried to tick non-existant Mario with ID: %u", marioId);
@@ -229,14 +229,24 @@ void sm64_mario_tick( int32_t marioId, const struct SM64MarioInputs *inputs, str
     vec3f_copy(outState->position, gMarioState->pos);
     outState->faceAngle = gMarioState->faceAngle[1] / 32768.0f * M_PI;
 
-    vec3f_interpolate( outState->interpolatedPosition, gMarioState->prevPos, gMarioState->pos );
-    vec3f_interpolate( outState->interpolatedVelocity, gMarioState->prevVel, gMarioState->vel );
+    gfx_adapter_bind_output_buffers(outBuffers);
+    geo_process_root_hack_single_node(s_mario_graph_node);
+}
+
+extern void sm64_mario_post_tick(int32_t marioId, struct SM64MarioState* outState)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
+        DEBUG_PRINT("Tried to post tick non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    vec3f_copy(outState->position, gMarioState->pos);
+    outState->faceAngle = gMarioState->faceAngle[1] / 32768.0f * M_PI;
+
+    vec3f_interpolate(outState->interpolatedPosition, gMarioState->prevPos, gMarioState->pos);
+    vec3f_interpolate(outState->interpolatedVelocity, gMarioState->prevVel, gMarioState->vel);
     outState->interpolatedFaceAngle = s16_angle_interpolate(gMarioState->prevFaceAngle[1], gMarioState->faceAngle[1]) / 32768.0f * M_PI;
     vec3f_interpolate(outState->interpolatedGfxPosition, gMarioObject->header.gfx.prevPos, gMarioObject->header.gfx.pos);
-
-    gfx_adapter_bind_output_buffers(outBuffers);
-
-    geo_process_root_hack_single_node(s_mario_graph_node);
 
     increment_interpolation_frame();
     gAreaUpdateCounter = get_interpolation_area_update_counter();
@@ -496,6 +506,17 @@ void sm64_mario_set_action(int32_t marioId, uint32_t action)
     if (gMarioState->action != action && (action == ACT_WALKING || (gMarioState->action & ACT_FLAG_AIR) != (action & ACT_FLAG_AIR))) {
         set_mario_action(gMarioState, action, 0);
     }
+}
+
+uint8_t sm64_mario_is_airborne(int32_t marioId)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
+        DEBUG_PRINT("Tried to get airborne status of non-existant Mario with ID: %u", marioId);
+        return FALSE;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+    return (gMarioState->action & ACT_FLAG_AIR) != 0;
 }
 
 uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject )
