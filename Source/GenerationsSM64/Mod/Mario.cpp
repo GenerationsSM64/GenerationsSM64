@@ -142,7 +142,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 			// If Sonic is pointing down after losing control (eg. in the middle of a loop),
 			// let him control for a little longer, otherwise Mario is going to clip through the ceiling.
-			if (playerContext->m_UpVector.y() <= 0.0f)
+			if (playerContext->m_UpVector.y() <= 0.01f)
 				controlSonicTimer = max(0.25f, controlSonicTimer);
 		}
 	}
@@ -182,22 +182,15 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		if (animName == "JumpBall" || animName == "SpinAttack")
 			animId = MARIO_ANIM_FORWARD_SPINNING;
 
-		else if (animName == "UpReelStart" || animName == "PulleyStart" || animName == "UpReelLoop" || animName == "PulleyLoop")
+		else if (animName == "Walk")
+			sm64_mario_set_action(mario, ACT_WALKING);
+
+		else if (animName == "UpReelStart" || animName == "PulleyStart" || 
+			animName == "UpReelLoop" ||  animName == "PulleyLoop" ||
+			strstr(animName.c_str(), "CatchRocket"))
 		{
 			animId = MARIO_ANIM_IDLE_ON_LEDGE;
-			animOffset = 1.0f;
-		}
-
-		else if (strstr(animName.c_str(), "HangPole"))
-		{
-			if (animName == "HangPoleB")
-				animId = MARIO_ANIM_MOVE_ON_WIRE_NET_RIGHT;
-			else if (animName == "HangPoleF")
-				animId = MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT;
-			else
-				animId = MARIO_ANIM_HANG_ON_CEILING;
-
-			animOffset = -0.25f;
+			animOffset = 1.1f;
 		}
 
 		else if (strstr(animName.c_str(), "HomingAttackAfter"))
@@ -217,6 +210,18 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		else if (strstr(animName.c_str(), "Result") && strstr(animName.c_str(), "_Link"))
 			animId = MARIO_ANIM_STAR_DANCE;
+
+		else if (strstr(animName.c_str(), "HangPole") || strstr(animName.c_str(), "CatchHeri"))
+		{
+			if (animName == "HangPoleB")
+				animId = MARIO_ANIM_MOVE_ON_WIRE_NET_RIGHT;
+			else if (animName == "HangPoleF")
+				animId = MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT;
+			else
+				animId = MARIO_ANIM_HANG_ON_CEILING;
+
+			animOffset = -0.25f;
+		}
 
 		if (animId >= 0)
 		{

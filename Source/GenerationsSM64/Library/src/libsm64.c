@@ -484,6 +484,20 @@ uint8_t sm64_mario_is_lava_boost(int32_t marioId)
     return gMarioState->action == ACT_LAVA_BOOST;
 }
 
+void sm64_mario_set_action(int32_t marioId, uint32_t action)
+{
+    if (marioId >= s_mario_instance_pool.size || s_mario_instance_pool.objects[marioId] == NULL) {
+        DEBUG_PRINT("Tried to set action of non-existant Mario with ID: %u", marioId);
+        return;
+    }
+
+    global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
+
+    if (gMarioState->action != action) {
+        set_mario_action(gMarioState, action, 0);
+    }
+}
+
 uint32_t sm64_surface_object_create( const struct SM64SurfaceObject *surfaceObject )
 {
     uint32_t id = surfaces_load_object( surfaceObject );

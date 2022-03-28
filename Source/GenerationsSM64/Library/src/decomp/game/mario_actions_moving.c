@@ -804,7 +804,7 @@ s32 act_walking(struct MarioState *m) {
         return TRUE;
     }
 
-    if (m->input & INPUT_UNKNOWN_5) {
+    if ((m->input & INPUT_UNKNOWN_5) && !m->externalControl) {
         return begin_braking_action(m);
     }
 
