@@ -155,6 +155,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	DebugDrawText::log(format("Animation: %s", playerContext->GetCurrentAnimationName().c_str()));
 
 	float animOffset = 0.0f;
+	float scale = 1.0f;
 
 	if (controlSonic)
 	{
@@ -181,7 +182,12 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		int animId = -1;
 
 		if (animName == "JumpBall" || animName == "SpinAttack")
+		{
 			animId = MARIO_ANIM_FORWARD_SPINNING;
+
+			if (stateName == "TransformRocket" || stateName == "TransformSpike")
+				scale = 0.0f;
+		}
 
 		else if (animName == "UpReelStart" || animName == "PulleyStart" || 
 			animName == "UpReelLoop" ||  animName == "PulleyLoop" ||
@@ -189,6 +195,14 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		{
 			animId = MARIO_ANIM_IDLE_ON_LEDGE;
 			animOffset = 1.1f;
+		}
+
+		else if (animName == "TransformRocket" || animName == "TransformSpike")
+		{
+			animId = MARIO_ANIM_FORWARD_SPINNING;
+
+			if (stateName != "TransformRocket" && stateName != "TransformSpike")
+				scale = 0.0f;
 		}
 
 		else if (strstr(animName.c_str(), "HomingAttackAfter"))
@@ -354,8 +368,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(
 		state.interpolatedGfxPosition[0] * 0.01f, state.interpolatedGfxPosition[1] * 0.01f + animOffset, state.interpolatedGfxPosition[2] * 0.01f));
 
-	if (!playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] && *((bool*)playerContext + 0x112C))
-		renderable->m_spInstanceInfo->m_Transform *= Eigen::Scaling(0.0f); 
+	if ((!playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] && *((bool*)playerContext + 0x112C)))
+		scale = 0.0f;
+
+	renderable->m_spInstanceInfo->m_Transform *= Eigen::Scaling(scale); 
 }
 
 HOOK(void, __fastcall, CGameplayFlowStageOnExit, 0xD05360, void* This)
