@@ -183,9 +183,6 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		if (animName == "JumpBall" || animName == "SpinAttack")
 			animId = MARIO_ANIM_FORWARD_SPINNING;
 
-		else if (animName == "Walk")
-			sm64_mario_set_action(mario, ACT_WALKING);
-
 		else if (animName == "UpReelStart" || animName == "PulleyStart" || 
 			animName == "UpReelLoop" ||  animName == "PulleyLoop" ||
 			strstr(animName.c_str(), "CatchRocket"))
@@ -231,6 +228,12 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		}
 		else
 			sm64_mario_set_animation_lock(mario, false);
+
+		if (animName == "Walk")
+			sm64_mario_set_action(mario, ACT_WALKING);
+
+		else if (!playerContext->m_Grounded)
+			sm64_mario_set_action(mario, ACT_FREEFALL);
 	}
 
 	else

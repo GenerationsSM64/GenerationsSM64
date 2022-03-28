@@ -785,35 +785,38 @@ void tilt_body_ground_shell(struct MarioState *m, s16 startYaw) {
 s32 act_walking(struct MarioState *m) {
     Vec3f startPos;
     s16 startYaw = m->faceAngle[1];
+    s32 groundStep;
 
     mario_drop_held_object(m);
 
-    if (should_begin_sliding(m)) {
-        return set_mario_action(m, ACT_BEGIN_SLIDING, 0);
-    }
+    if (!m->externalControl) {
+        if (should_begin_sliding(m)) {
+            return set_mario_action(m, ACT_BEGIN_SLIDING, 0);
+        }
 
-    if (m->input & INPUT_FIRST_PERSON) {
-        return begin_braking_action(m);
-    }
+        if (m->input & INPUT_FIRST_PERSON) {
+            return begin_braking_action(m);
+        }
 
-    if (m->input & INPUT_A_PRESSED) {
-        return set_jump_from_landing(m);
-    }
+        if (m->input & INPUT_A_PRESSED) {
+            return set_jump_from_landing(m);
+        }
 
-    if (check_ground_dive_or_punch(m)) {
-        return TRUE;
-    }
+        if (check_ground_dive_or_punch(m)) {
+            return TRUE;
+        }
 
-    if ((m->input & INPUT_UNKNOWN_5) && !m->externalControl) {
-        return begin_braking_action(m);
-    }
+        if ((m->input & INPUT_UNKNOWN_5)) {
+            return begin_braking_action(m);
+        }
 
-    if (analog_stick_held_back(m) && m->forwardVel >= 16.0f) {
-        return set_mario_action(m, ACT_TURNING_AROUND, 0);
-    }
+        if (analog_stick_held_back(m) && m->forwardVel >= 16.0f) {
+            return set_mario_action(m, ACT_TURNING_AROUND, 0);
+        }
 
-    if (m->input & INPUT_Z_PRESSED) {
-        return set_mario_action(m, ACT_CROUCH_SLIDE, 0);
+        if (m->input & INPUT_Z_PRESSED) {
+            return set_mario_action(m, ACT_CROUCH_SLIDE, 0);
+        }
     }
 
     m->actionState = 0;
@@ -821,7 +824,13 @@ s32 act_walking(struct MarioState *m) {
     vec3f_copy(startPos, m->pos);
     update_walking_speed(m);
 
-    switch (perform_ground_step(m)) {
+    if (m->externalControl) {
+        groundStep = GROUND_STEP_NONE;
+    } else {
+        groundStep = perform_ground_step(m);
+    }
+
+    switch (groundStep) {
         case GROUND_STEP_LEFT_GROUND:
             set_mario_action(m, ACT_FREEFALL, 0);
             set_mario_animation(m, MARIO_ANIM_GENERAL_FALL);

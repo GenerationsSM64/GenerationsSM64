@@ -493,7 +493,7 @@ void sm64_mario_set_action(int32_t marioId, uint32_t action)
 
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
-    if (gMarioState->action != action) {
+    if (gMarioState->action != action && (action == ACT_WALKING || (gMarioState->action & ACT_FLAG_AIR) != (action & ACT_FLAG_AIR))) {
         set_mario_action(gMarioState, action, 0);
     }
 }

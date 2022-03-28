@@ -620,6 +620,9 @@ s32 perform_air_step(struct MarioState *m, u32 stepArg) {
         intendedPos[2] = m->pos[2] + m->vel[2] / 4.0f;
 
         quarterStepResult = perform_air_quarter_step(m, intendedPos, stepArg);
+        if (m->externalControl && quarterStepResult == AIR_STEP_HIT_WALL) {
+            quarterStepResult = AIR_STEP_NONE;
+        }
 
         //! On one qf, hit OOB/ceil/wall to store the 2 return value, and continue
         // getting 0s until your last qf. Graze a wall on your last qf, and it will
