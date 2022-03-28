@@ -275,8 +275,6 @@ void sm64_mario_set_position(int32_t marioId, float x, float y, float z, uint8_t
         vec3f_copy(gMarioState->prevPos, gMarioState->pos);
         vec3f_copy(gMarioObject->header.gfx.prevPos, gMarioState->pos);
     }
-
-    vec3f_set(gMarioObject->header.gfx.cameraToObject, 0, 0, 0);
 }
 
 void sm64_mario_set_velocity(int32_t marioId, float x, float y, float z, float forwardVel)
@@ -448,7 +446,7 @@ uint8_t sm64_mario_diving(int32_t marioId)
     }
 
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
-    return (gMarioState->action & ACT_FLAG_DIVING) != 0;
+    return (gMarioState->action & ACT_FLAG_DIVING) != 0 || (gMarioObject->header.gfx.animInfo.curAnim && gMarioObject->header.gfx.animInfo.animID == MARIO_ANIM_DIVE);
 }
 
 void sm64_mario_set_camera_to_object(int32_t marioId, float x, float y, float z)

@@ -277,6 +277,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	if (padState.IsTapped(Sonic::eKeyState_B))
 		sm64_mario_toggle_wing_cap(mario);
 
+	const auto viewPosition = camera->m_MyCamera.m_View * position.head<3>();
+	sm64_mario_set_camera_to_object(mario, viewPosition.x() * 100.0f, viewPosition.y() * 100.0f, viewPosition.z() * 100.0f);
+
 	sm64_mario_tick(mario, &inputs, &state, &buffers);
 
 	if (state.isUpdateFrame)
