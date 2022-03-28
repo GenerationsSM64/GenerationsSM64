@@ -182,16 +182,22 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		if (animName == "JumpBall" || animName == "SpinAttack")
 			animId = MARIO_ANIM_FORWARD_SPINNING;
 
-		else if (animName == "UpReelStart" || animName == "PulleyStart")
+		else if (animName == "UpReelStart" || animName == "PulleyStart" || animName == "UpReelLoop" || animName == "PulleyLoop")
 		{
 			animId = MARIO_ANIM_IDLE_ON_LEDGE;
 			animOffset = 1.0f;
 		}
 
-		else if (animName == "UpReelLoop" || animName == "PulleyLoop")
+		else if (strstr(animName.c_str(), "HangPole"))
 		{
-			animId = MARIO_ANIM_IDLE_ON_LEDGE;
-			animOffset = 1.0f;
+			if (animName == "HangPoleB")
+				animId = MARIO_ANIM_MOVE_ON_WIRE_NET_RIGHT;
+			else if (animName == "HangPoleF")
+				animId = MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT;
+			else
+				animId = MARIO_ANIM_HANG_ON_CEILING;
+
+			animOffset = -0.25f;
 		}
 
 		else if (strstr(animName.c_str(), "HomingAttackAfter"))

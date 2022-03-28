@@ -336,6 +336,23 @@ void sm64_mario_set_animation(int32_t marioId, int32_t animationID)
 
     global_state_bind(((struct MarioInstance*)s_mario_instance_pool.objects[marioId])->globalState);
 
+    if (animationID == MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT || animationID == MARIO_ANIM_MOVE_ON_WIRE_NET_RIGHT) {
+        if (gMarioObject->header.gfx.animInfo.animID != MARIO_ANIM_HANG_ON_CEILING && !is_anim_at_end(gMarioState)) {
+            return;
+        }
+
+        if (gMarioObject->header.gfx.animInfo.animID == MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT)
+            animationID = MARIO_ANIM_MOVE_ON_WIRE_NET_RIGHT;
+        else
+            animationID = MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT;
+    }
+    else if (animationID == MARIO_ANIM_HANG_ON_CEILING) {
+        if (gMarioObject->header.gfx.animInfo.animID == MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT || 
+            gMarioObject->header.gfx.animInfo.animID == MARIO_ANIM_MOVE_ON_WIRE_NET_RIGHT) {
+            return;
+        }
+    }
+
     u32 tmp = gMarioState->animation->locked;
     gMarioState->animation->locked = FALSE;
     set_mario_animation(gMarioState, animationID);
