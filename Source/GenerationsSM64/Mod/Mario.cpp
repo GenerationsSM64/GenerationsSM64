@@ -114,7 +114,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		strstr(stateName.c_str(), "Grind") ||
 		strstr(stateName.c_str(), "Homing") ||
 		strstr(stateName.c_str(), "Pipe") ||
-		strstr(stateName.c_str(), "Rocket");
+		strstr(stateName.c_str(), "Rocket") ||
+		strstr(stateName.c_str(), "Spike");
 
 	controlSonic &= !sm64_mario_is_lava_boost(mario);
 
@@ -232,7 +233,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		sm64_mario_set_animation_lock(mario, false);
 	}
 
-	const auto padState = Sonic::CInputState::GetInstance()->GetPadState();
+	const auto& padState = Sonic::CInputState::GetInstance()->GetPadState();
 	const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
 
 	inputs.camLookX = -camera->m_MyCamera.m_Direction.x();
