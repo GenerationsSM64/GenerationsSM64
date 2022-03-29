@@ -323,16 +323,21 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			RayCastQuery query;
 			if (rayCastRigidBody(playerContext, query,
 				pos + hh::math::CVector(0, +0.5f, 0),
-				pos + hh::math::CVector(0, -0.5f, 0)))
+				pos + hh::math::CVector(0, -0.5f, 0)) && query.rigidBody)
 			{
-				const auto& rigidBodyMatrix =
-					*(hh::math::CMatrix*)(*(char**)((char*)query.rigidBody + 4) + 0xF0); // accesses hkpRigidBody?
+				const auto hkpRigidBody = *(char**)((char*)query.rigidBody + 4);
 
-				if (prevRigidBody == query.rigidBody)
-					pos = rigidBodyMatrix * (prevRigidBodyMatrixInverse * pos.head<3>());
+				if (hkpRigidBody)
+				{
+					const auto& rigidBodyMatrix =
+						*(hh::math::CMatrix*)(hkpRigidBody +0xF0); // accesses hkpRigidBody?
 
-				::prevRigidBody = query.rigidBody;
-				prevRigidBodyMatrixInverse = rigidBodyMatrix.inverse();
+					if (prevRigidBody == query.rigidBody)
+						pos = rigidBodyMatrix * (prevRigidBodyMatrixInverse * pos.head<3>());
+
+					::prevRigidBody = query.rigidBody;
+					prevRigidBodyMatrixInverse = rigidBodyMatrix.inverse();
+				}
 			}
 		}
 
