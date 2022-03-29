@@ -105,12 +105,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	const auto& stateName = player->m_StateMachine.GetCurrentState()->GetStateName();
 
-	bool controlSonic =
+	bool ignoreInput = 
 		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl] ||
 		stateName == "HangOn" ||
-		stateName == "JumpSpring" ||
 		stateName == "LightSpeedDash" ||
-		stateName == "SpecialJump" ||
 		stateName == "TramRiding" ||
 		strstr(stateName.c_str(), "ExternalControl") ||
 		strstr(stateName.c_str(), "Grind") ||
@@ -119,7 +117,14 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		strstr(stateName.c_str(), "Rocket") ||
 		strstr(stateName.c_str(), "Spike");
 
-	controlSonic &= !sm64_mario_is_lava_boost(mario);
+	bool controlSonic =
+		ignoreInput ||
+		stateName == "JumpSpring" ||
+		stateName == "SpecialJump";
+
+	const bool isLavaBoost = sm64_mario_is_lava_boost(mario);
+	ignoreInput &= !isLavaBoost;
+	controlSonic &= !isLavaBoost;
 
 	if (controlSonic)
 	{
@@ -210,6 +215,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		else if (animName == "Squat")
 			animId = MARIO_ANIM_CROUCHING;
 
+		else if (animName == "LightSpeedDash")
+			animId = MARIO_ANIM_WING_CAP_FLY;
+
 		else if (strstr(animName.c_str(), "HomingAttackAfter"))
 			animId = MARIO_ANIM_FAST_LONGJUMP;
 
@@ -297,7 +305,15 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		inputs.stickY /= norm;
 	}
 
-	if (padState.IsTapped(Sonic::eKeyState_B))
+	if (ignoreInput)
+	{
+		inputs.stickX = 0.0f;
+		inputs.stickY = 0.0f;
+		inputs.buttonA = 0;
+		inputs.buttonB = 0;
+		inputs.buttonZ = 0;
+	}
+	else if (padState.IsTapped(Sonic::eKeyState_B))
 		sm64_mario_toggle_wing_cap(mario);
 
 	const auto viewPosition = camera->m_MyCamera.m_View * position.head<3>();
