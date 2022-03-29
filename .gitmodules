@@ -1,0 +1,3 @@
+[submodule "Dependencies/DllMods"]
+	path = Dependencies/DllMods
+	url = https://github.com/blueskythlikesclouds/DllMods

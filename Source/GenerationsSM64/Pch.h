@@ -32,4 +32,4 @@ extern "C"
 }
 #include <decomp/pc/audio/audio_wasapi.h>
 
-#include "../../GenerationsParameterEditor/Include/DebugDrawText.h"
+#include "../../Dependencies/DllMods/Source/GenerationsParameterEditor/Include/DebugDrawText.h"

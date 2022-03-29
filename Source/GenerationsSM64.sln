@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GenerationsSM64", "D:\Repositories\DllMods\Source\GenerationsSM64\Mod\GenerationsSM64.vcxproj", "{ACC137AD-3413-4157-AC90-BFDFBCD55827}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GenerationsSM64", "GenerationsSM64\GenerationsSM64.vcxproj", "{ACC137AD-3413-4157-AC90-BFDFBCD55827}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libsm64", "Library\libsm64.vcxproj", "{88993880-F049-40F3-AEDE-C0F8B5232FE1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libsm64", "libsm64\libsm64.vcxproj", "{88993880-F049-40F3-AEDE-C0F8B5232FE1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

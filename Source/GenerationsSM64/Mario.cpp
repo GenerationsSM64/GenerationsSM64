@@ -191,8 +191,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 				scale = 0.0f;
 		}
 
-		else if (animName == "UpReelStart" || animName == "PulleyStart" || 
-			animName == "UpReelLoop" ||  animName == "PulleyLoop" ||
+		else if (animName == "UpReelStart" || animName == "PulleyStart" ||
+			animName == "UpReelLoop" || animName == "PulleyLoop" ||
 			strstr(animName.c_str(), "CatchRocket"))
 		{
 			animId = MARIO_ANIM_IDLE_ON_LEDGE;
@@ -206,6 +206,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			if (stateName != "TransformRocket" && stateName != "TransformSpike")
 				scale = 0.0f;
 		}
+
+		else if (animName == "Squat")
+			animId = MARIO_ANIM_CROUCHING;
 
 		else if (strstr(animName.c_str(), "HomingAttackAfter"))
 			animId = MARIO_ANIM_FAST_LONGJUMP;
