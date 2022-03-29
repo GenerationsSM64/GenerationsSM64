@@ -115,6 +115,7 @@
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClInclude Include="EndianSwap.h" />
+    <ClCompile Include="FPS.cpp" />
     <ClCompile Include="Mario.cpp" />
     <ClCompile Include="Mod.cpp" />
     <ClCompile Include="Pch.cpp">

@@ -25,6 +25,7 @@
 
 extern "C"
 {
+#include <interpolation.h>
 #include <libsm64.h>
 #include <decomp/global_state.h>
 #include <decomp/audio/external.h>

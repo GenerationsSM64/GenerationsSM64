@@ -8,18 +8,30 @@ f32 interpolationFactorA;
 f32 interpolationFactorB;
 
 void set_interpolation_interval(u32 interval) {
+    interpolationFrame *= interpolationInterval;
+    interpolationFrame /= interval;
     interpolationInterval = interval;
-    interpolationFrame = 0;
     interpolationOffset = 0;
-    interpolationFactorA = 0;
-    interpolationFactorB = 0;
+    if (interpolationInterval > 1) {
+        interpolationFactorA = 1.0f;
+        interpolationFactorB = 0.0f;
+    } else {
+        interpolationFactorA = 0.0f;
+        interpolationFactorB = 1.0f;
+    }
 }
 
 void increment_interpolation_frame(void) {
     interpolationFrame = interpolationFrame + 1;
-    interpolationOffset = interpolationFrame % interpolationInterval;
-    interpolationFactorB = (f32)interpolationOffset / (f32)interpolationInterval;
-    interpolationFactorA = 1 - interpolationFactorB;
+    if (interpolationInterval > 1) {
+        interpolationOffset = interpolationFrame % interpolationInterval;
+        interpolationFactorB = (f32)interpolationOffset / (f32)interpolationInterval;
+        interpolationFactorA = 1 - interpolationFactorB;
+    } else {
+        interpolationOffset = 0;
+        interpolationFactorA = 0.0f;
+        interpolationFactorB = 1.0f;
+    }
 }
 
 u16 get_interpolation_area_update_counter(void) {

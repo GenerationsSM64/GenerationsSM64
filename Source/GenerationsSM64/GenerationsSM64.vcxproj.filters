@@ -14,6 +14,7 @@
     <ClCompile Include="..\..\Dependencies\DllMods\Dependencies\xxHash\xxhash.c">
       <Filter>Dependencies</Filter>
     </ClCompile>
+    <ClCompile Include="FPS.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Pch.h" />

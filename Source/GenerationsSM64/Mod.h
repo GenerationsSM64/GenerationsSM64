@@ -15,3 +15,4 @@ extern void initSM64();
 extern void initAudio();
 extern void initDatabase();
 extern void initMario();
+extern void initFPS();
