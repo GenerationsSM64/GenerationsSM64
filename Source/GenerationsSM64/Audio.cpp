@@ -42,7 +42,7 @@ void audioCallback()
     }
 }
 
-void initAudio(const std::string& directoryPath)
+void initAudio()
 {
     gSoundDataADSR = rom.get() + 0x57B720;
     gSoundDataRaw = rom.get() + 0x593560;

@@ -10,11 +10,20 @@
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Util.cpp" />
+    <ClCompile Include="Rom.cpp" />
+    <ClCompile Include="..\..\Dependencies\DllMods\Dependencies\xxHash\xxhash.c">
+      <Filter>Dependencies</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Pch.h" />
     <ClInclude Include="Mod.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="EndianSwap.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Dependencies">
+      <UniqueIdentifier>{e96d3b9f-d20c-4117-9a80-abbd159c83ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

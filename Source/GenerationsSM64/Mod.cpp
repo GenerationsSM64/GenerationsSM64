@@ -17,8 +17,9 @@ extern "C" void __declspec(dllexport) Init(ModInfo * info)
 	if (pos != std::string::npos)
 		dir.erase(pos + 1);
 
-	initSM64(dir + "baserom.us.z64");
-	initAudio(dir);
+	initRom(dir + "GenerationsSM64.ini");
+	initSM64();
+	initAudio();
 	initDatabase();
 	initMario();
 }

@@ -60,7 +60,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\..\Dependencies\DllMods\Dependencies;..\..\Dependencies\DllMods\Dependencies\Detours\include;..\..\Dependencies\DllMods\Dependencies\Loaders;..\..\Dependencies\DllMods\Include\BlueBlur;..\libsm64\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Dependencies\DllMods\Dependencies;..\..\Dependencies\DllMods\Dependencies\Detours\include;..\..\Dependencies\DllMods\Dependencies\Loaders;..\..\Dependencies\DllMods\Include\BlueBlur;..\libsm64\src;..\..\Dependencies\DllMods\Dependencies\xxHash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>Pch.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -83,7 +83,7 @@
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <AdditionalIncludeDirectories>..\..\Dependencies\DllMods\Dependencies;..\..\Dependencies\DllMods\Dependencies\Detours\include;..\..\Dependencies\DllMods\Dependencies\Loaders;..\..\Dependencies\DllMods\Include\BlueBlur;..\libsm64\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Dependencies\DllMods\Dependencies;..\..\Dependencies\DllMods\Dependencies\Detours\include;..\..\Dependencies\DllMods\Dependencies\Loaders;..\..\Dependencies\DllMods\Include\BlueBlur;..\libsm64\src;..\..\Dependencies\DllMods\Dependencies\xxHash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>Pch.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <StringPooling>true</StringPooling>
@@ -103,6 +103,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Dependencies\DllMods\Dependencies\xxHash\xxhash.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ForcedIncludeFiles>
+    </ClCompile>
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DllMain.cpp" />
@@ -116,6 +124,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Database.cpp" />
+    <ClCompile Include="Rom.cpp" />
     <ClCompile Include="SM64.cpp" />
     <ClCompile Include="Util.cpp" />
   </ItemGroup>

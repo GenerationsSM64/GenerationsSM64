@@ -5,12 +5,14 @@
 #include <BlueBlur.h>
 
 #include <Windows.h>
+#include <commdlg.h>
 #include <detours.h>
 
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <fstream>
 #include <thread>
 
 #include <INIReader.h>
@@ -18,6 +20,8 @@
 #include <Helpers.h>
 
 #include <LostCodeLoader.h>
+
+#include <xxhash.h>
 
 extern "C"
 {

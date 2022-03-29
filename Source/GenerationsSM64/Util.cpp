@@ -2,7 +2,16 @@
 
 std::unique_ptr<uint8_t[]> readAllBytes(const std::string& filePath, size_t& size)
 {
-	FILE* file = fopen(filePath.c_str(), "rb");
+	if (filePath.empty())
+	{
+		size = 0;
+		return nullptr;
+	}
+
+	WCHAR path[1024] {};
+	MultiByteToWideChar(CP_UTF8, 0, filePath.c_str(), -1, path, _countof(path));
+
+	FILE* file = _wfopen(path, L"rb");
 	if (!file)
 	{
 		size = 0;

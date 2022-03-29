@@ -10,7 +10,8 @@ extern SM64MarioState state;
 
 extern bool disableWallCollision;
 
-extern void initSM64(const std::string& romFilePath);
-extern void initAudio(const std::string& directoryPath);
+extern void initRom(const std::string& iniFilePath);
+extern void initSM64();
+extern void initAudio();
 extern void initDatabase();
 extern void initMario();
