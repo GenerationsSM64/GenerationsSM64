@@ -454,9 +454,9 @@ HOOK(void, __fastcall, CPlayerAddCallback, 0xE799F0, Sonic::Player::CPlayer* Thi
 
 	hh::mr::CMirageDatabaseWrapper mirageDatabaseWrapper(spDatabase.get());
 
-	// Remake the "mario.dds" file using the texture generated from the ROM.
+	// Remake the "Dynamic.dds" file using the texture generated from the ROM.
 	boost::shared_ptr<hh::mr::CPictureData> spPictureData;
-	mirageDatabaseWrapper.GetPictureData(spPictureData, "Mario", 0);
+	mirageDatabaseWrapper.GetPictureData(spPictureData, "Dynamic", 0);
 
 	FUNCTION_PTR(void, __cdecl, makePictureData, 0x743DE0, hh::mr::CPictureData* pPictureData, const uint8_t* pData, size_t length,
 		hh::mr::CRenderingInfrastructure* pRenderingInfrastructure);
@@ -472,8 +472,8 @@ HOOK(void, __fastcall, CPlayerAddCallback, 0xE799F0, Sonic::Player::CPlayer* Thi
 	makePictureData(spPictureData.get(), marioTexture.get(), marioTextureSize,
 		*(hh::mr::CRenderingInfrastructure**)((char*)Sonic::CApplicationDocument::GetInstance()->m_pMember + 60));
 
-	// Add Mario's model. The vertex buffers are going to be dynamically updated using the data returned by libsm64.
-	mirageDatabaseWrapper.GetModelData(modelData, "Mario", 0);
+	// Add the dynamic model. The vertex buffers are going to be dynamically updated using the data returned by libsm64.
+	mirageDatabaseWrapper.GetModelData(modelData, "Dynamic", 0);
 	This->AddRenderable("Object", renderable = boost::make_shared<hh::mr::CSingleElement>(modelData), true);
 }
 

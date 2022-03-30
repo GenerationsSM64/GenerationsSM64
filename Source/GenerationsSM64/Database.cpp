@@ -19,43 +19,37 @@ HOOK(void*, __stdcall, LoadApplicationAndShaders, 0xD6A580, void* This)
     uint32_t unk0[53];
 
     fun446F90((void*)&unk0, 200, 5);
-    fun69C270(archiveDatabaseLoader, boost::shared_ptr<void>(), "MarioShader.ar", "MarioShader.arl", (void*)&unk0);
+    fun69C270(archiveDatabaseLoader, boost::shared_ptr<void>(), "VertexColorFadeToInvAlpha.ar", "VertexColorFadeToInvAlpha.arl", (void*)&unk0);
     fun446E30((void*)&unk0);
 
     uint32_t field04 = *(uint32_t*)((uint32_t)This + 4);
     boost::shared_ptr<void> field88 = *(boost::shared_ptr<void>*)(field04 + 136);
 
-    fun69AFF0(archiveDatabaseLoader, field88, "MarioShader.arl");
+    fun69AFF0(archiveDatabaseLoader, field88, "VertexColorFadeToInvAlpha.arl");
 
     fun446F90((void*)&unk0, -10, 5);
-    fun69AB10(archiveDatabaseLoader, field88, "MarioShader.ar", (void*)&unk0, 0, 0);
+    fun69AB10(archiveDatabaseLoader, field88, "VertexColorFadeToInvAlpha.ar", (void*)&unk0, 0, 0);
     fun446E30((void*)&unk0);
 
     return originalLoadApplicationAndShaders(This);
 }
 
+constexpr std::string_view ARCHIVE_TREE_DATA =
+"  <DefAppend>\n"
+"    <Name>SonicActionCommon</Name>\n"
+"    <Archive>DynamicData</Archive>\n"
+"  </DefAppend>\n";
+
 HOOK(bool, __stdcall, ParseArchiveTree, 0xD4C8E0, void* A1, char* data, const size_t size, void* database)
 {
-    std::string str;
-    {
-        std::stringstream stream;
-
-        stream << "  <DefAppend>\n";
-        stream << "    <Name>SonicActionCommon</Name>\n";
-        stream << "    <Archive>Mario</Archive>\n";
-        stream << "  </DefAppend>\n";
-
-        str = stream.str();
-    }
-
-    const size_t newSize = size + str.size();
+    const size_t newSize = size + ARCHIVE_TREE_DATA.size();
     const std::unique_ptr<char[]> buffer = std::make_unique<char[]>(newSize);
     memcpy(buffer.get(), data, size);
 
     char* insertionPos = strstr(buffer.get(), "<Include>");
 
-    memmove(insertionPos + str.size(), insertionPos, size - (size_t)(insertionPos - buffer.get()));
-    memcpy(insertionPos, str.c_str(), str.size());
+    memmove(insertionPos + ARCHIVE_TREE_DATA.size(), insertionPos, size - (size_t)(insertionPos - buffer.get()));
+    memcpy(insertionPos, ARCHIVE_TREE_DATA.data(), ARCHIVE_TREE_DATA.size());
 
     bool result;
     {
