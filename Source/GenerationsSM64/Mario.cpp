@@ -406,14 +406,14 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		FUNCTION_PTR(void, __thiscall, changeCollision,
 			Sonic::Player::CSonicClassicContext::GetInstance() ? 0xDC30A0 : 0xDFCD20, void* This, size_t type);
 
-		const bool attacking = sm64_mario_attacking();
-		changeCollision(playerContext, attacking ? 2 : 0);
-		setCollision(TypeSonicBoost, attacking);
+		const bool boost = sm64_mario_should_use_boost_collision();
+		const bool stomp = sm64_mario_should_use_stomp_collision();
 
-		const bool diving = sm64_mario_diving();
-		setCollision(TypeSonicStomping, diving);
+		changeCollision(playerContext, boost ? 2 : 0);
+		setCollision(TypeSonicBoost, boost);
+		setCollision(TypeSonicStomping, stomp);
 
-		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Boost] = attacking || diving;
+		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Boost] = boost;
 	}
 
 	if (!controlSonic)

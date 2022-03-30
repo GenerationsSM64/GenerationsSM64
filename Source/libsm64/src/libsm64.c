@@ -363,14 +363,13 @@ void sm64_mario_take_damage(void) {
     }
 }
 
-uint8_t sm64_mario_attacking(void) {
-    return (gMarioState->action & ACT_FLAG_ATTACKING) != 0;
+uint8_t sm64_mario_should_use_boost_collision(void) {
+    return gMarioState->action != ACT_GROUND_POUND && gMarioState->action != ACT_GROUND_POUND_LAND
+           && (gMarioState->action & (ACT_FLAG_ATTACKING | ACT_FLAG_DIVING)) != 0;
 }
 
-uint8_t sm64_mario_diving(void) {
-    return (gMarioState->action & ACT_FLAG_DIVING) != 0
-           || (gMarioObject->header.gfx.animInfo.curAnim
-               && gMarioObject->header.gfx.animInfo.animID == MARIO_ANIM_DIVE);
+uint8_t sm64_mario_should_use_stomp_collision(void) {
+    return gMarioState->action == ACT_GROUND_POUND || gMarioState->action == ACT_GROUND_POUND_LAND;
 }
 
 void sm64_mario_set_camera_to_object(float x, float y, float z) {
