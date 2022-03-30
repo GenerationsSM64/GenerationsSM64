@@ -265,20 +265,25 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 	return data->numWalls;
 }
 
+f32 waterLevel;
+
 extern "C" f32 find_water_level(f32 x, f32 y, f32 z)
 {
-	static f32 waterLevel;
-
 	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
-	if (playerContext && playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OnWater])
-	{
-		if (waterLevel == -limit)
-			waterLevel = y;
-	}
-
-	else
+	if (playerContext && !playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OnWater])
 		waterLevel = -limit;
 
 	return waterLevel;
+}
+
+HOOK(void, __stdcall, EnterWater, 0xE55260, Sonic::Player::CPlayerSpeedContext* playerContext, bool isNoDeadWater)
+{
+	waterLevel = playerContext->m_spMatrixNode->m_Transform.m_Position.y() * 100.0f;
+	originalEnterWater(playerContext, isNoDeadWater);
+}
+
+void initCollision()
+{
+	INSTALL_HOOK(EnterWater);
 }
