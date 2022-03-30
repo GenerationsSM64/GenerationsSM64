@@ -372,6 +372,10 @@ uint8_t sm64_mario_should_use_stomp_collision(void) {
     return gMarioState->action == ACT_GROUND_POUND || gMarioState->action == ACT_GROUND_POUND_LAND;
 }
 
+uint8_t sm64_mario_should_use_squat_collision(void) {
+    return (gMarioState->action & ACT_FLAG_SHORT_HITBOX) != 0;
+}
+
 void sm64_mario_set_camera_to_object(float x, float y, float z) {
     vec3f_set(gMarioObject->header.gfx.cameraToObject, x, y, z);
 }

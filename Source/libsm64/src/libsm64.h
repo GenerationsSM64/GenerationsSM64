@@ -81,6 +81,7 @@ extern void sm64_mario_toggle_wing_cap(void);
 extern void sm64_mario_take_damage(void);
 extern uint8_t sm64_mario_should_use_boost_collision(void);
 extern uint8_t sm64_mario_should_use_stomp_collision(void);
+extern uint8_t sm64_mario_should_use_squat_collision(void);
 extern void sm64_mario_set_camera_to_object(float x, float y, float z);
 extern void sm64_mario_set_external_control(uint8_t value);
 extern uint8_t sm64_mario_is_lava_boost(void);

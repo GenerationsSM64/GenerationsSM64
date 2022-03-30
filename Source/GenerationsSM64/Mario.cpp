@@ -408,12 +408,14 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		const bool boost = sm64_mario_should_use_boost_collision();
 		const bool stomp = sm64_mario_should_use_stomp_collision();
+		const bool squat = sm64_mario_should_use_squat_collision();
 
-		changeCollision(playerContext, boost ? 2 : 0);
+		changeCollision(playerContext, boost ? 2 : squat ? 1 : 0);
 		setCollision(TypeSonicBoost, boost);
 		setCollision(TypeSonicStomping, stomp);
 
 		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Boost] = boost;
+		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Squat] = squat;
 	}
 
 	if (!controlSonic)
