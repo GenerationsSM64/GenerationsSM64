@@ -3,8 +3,7 @@
 #include "include/types.h"
 #include "game/area.h"
 
-struct GlobalState
-{
+struct GlobalState {
     // interaction.c
     u8 msDelayInvincTimer;
     s16 msInvulnerable;

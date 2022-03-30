@@ -25,7 +25,7 @@ void increment_interpolation_frame(void) {
     interpolationFrame = interpolationFrame + 1;
     if (interpolationInterval > 1) {
         interpolationOffset = interpolationFrame % interpolationInterval;
-        interpolationFactorB = (f32)interpolationOffset / (f32)interpolationInterval;
+        interpolationFactorB = (f32) interpolationOffset / (f32) interpolationInterval;
         interpolationFactorA = 1 - interpolationFactorB;
     } else {
         interpolationOffset = 0;
@@ -57,9 +57,8 @@ void vec3f_interpolate(Vec3f dest, Vec3f a, Vec3f b) {
 }
 
 s16 s16_angle_interpolate(s16 a, s16 b) {
-    return atan2s(
-        coss(a) * interpolationFactorA + coss(b) * interpolationFactorB, 
-        sins(a) * interpolationFactorA + sins(b) * interpolationFactorB);
+    return atan2s(coss(a) * interpolationFactorA + coss(b) * interpolationFactorB,
+                  sins(a) * interpolationFactorA + sins(b) * interpolationFactorB);
 }
 
 void vec3s_angle_interpolate(Vec3s dest, Vec3s a, Vec3s b) {
@@ -68,8 +67,7 @@ void vec3s_angle_interpolate(Vec3s dest, Vec3s a, Vec3s b) {
     dest[2] = s16_angle_interpolate(a[2], b[2]);
 }
 
-void mtxf_interpolate(Mat4 dest, Mat4 a, Mat4 b)
-{
+void mtxf_interpolate(Mat4 dest, Mat4 a, Mat4 b) {
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
             dest[i][j] = f32_interpolate(a[i][j], b[i][j]);

@@ -11,8 +11,7 @@
 
 #include "debug_print.h"
 
-struct LoadedSurfaceObject
-{
+struct LoadedSurfaceObject {
     struct SurfaceObjectTransform *transform;
     uint32_t surfaceCount;
     struct SM64Surface *libSurfaces;
@@ -25,10 +24,9 @@ static struct Surface *s_static_surface_list = NULL;
 static uint32_t s_surface_object_count = 0;
 static struct LoadedSurfaceObject *s_surface_object_list = NULL;
 
-#define CONVERT_ANGLE( x ) ((s16)( -(x) / 180.0f * 32768.0f ))
+#define CONVERT_ANGLE(x) ((s16) (-(x) / 180.0f * 32768.0f))
 
-static void init_transform( struct SurfaceObjectTransform *out, const struct SM64ObjectTransform *in )
-{
+static void init_transform(struct SurfaceObjectTransform *out, const struct SM64ObjectTransform *in) {
     out->aVelX = 0.0f;
     out->aVelY = 0.0f;
     out->aVelZ = 0.0f;
@@ -37,15 +35,14 @@ static void init_transform( struct SurfaceObjectTransform *out, const struct SM6
     out->aPosZ = in->position[2];
 
     out->aAngleVelPitch = 0.0f;
-    out->aAngleVelYaw   = 0.0f;
-    out->aAngleVelRoll  = 0.0f;
+    out->aAngleVelYaw = 0.0f;
+    out->aAngleVelRoll = 0.0f;
     out->aFaceAnglePitch = CONVERT_ANGLE(in->eulerRotation[0]);
-    out->aFaceAngleYaw   = CONVERT_ANGLE(in->eulerRotation[1]);
-    out->aFaceAngleRoll  = CONVERT_ANGLE(in->eulerRotation[2]);
+    out->aFaceAngleYaw = CONVERT_ANGLE(in->eulerRotation[1]);
+    out->aFaceAngleRoll = CONVERT_ANGLE(in->eulerRotation[2]);
 }
 
-static void update_transform( struct SurfaceObjectTransform *out, const struct SM64ObjectTransform *in )
-{
+static void update_transform(struct SurfaceObjectTransform *out, const struct SM64ObjectTransform *in) {
     out->aVelX = in->position[0] - out->aPosX;
     out->aVelY = in->position[1] - out->aPosY;
     out->aVelZ = in->position[2] - out->aPosZ;
@@ -58,11 +55,11 @@ static void update_transform( struct SurfaceObjectTransform *out, const struct S
     s16 inZ = CONVERT_ANGLE(in->eulerRotation[2]);
 
     out->aAngleVelPitch = inX - out->aFaceAnglePitch;
-    out->aAngleVelYaw   = inY - out->aFaceAngleYaw;
-    out->aAngleVelRoll  = inZ - out->aFaceAngleRoll;
+    out->aAngleVelYaw = inY - out->aFaceAngleYaw;
+    out->aAngleVelRoll = inZ - out->aFaceAngleRoll;
     out->aFaceAnglePitch = inX;
-    out->aFaceAngleYaw   = inY;
-    out->aFaceAngleRoll  = inZ;
+    out->aFaceAngleYaw = inY;
+    out->aFaceAngleRoll = inZ;
 }
 
 /**
@@ -89,8 +86,8 @@ static s32 surface_has_force(s16 surfaceType) {
     return hasForce;
 }
 
-static void engine_surface_from_lib_surface( struct Surface *surface, const struct SM64Surface *libSurf, struct SurfaceObjectTransform *transform )
-{
+static void engine_surface_from_lib_surface(struct Surface *surface, const struct SM64Surface *libSurf,
+                                            struct SurfaceObjectTransform *transform) {
     int16_t type = libSurf->type;
     int16_t force = libSurf->force;
     s32 x1 = libSurf->vertices[0][0];
@@ -107,10 +104,10 @@ static void engine_surface_from_lib_surface( struct Surface *surface, const stru
     f32 nx, ny, nz;
     f32 mag;
 
-    if( transform != NULL )
-    {
+    if (transform != NULL) {
         Mat4 m;
-        Vec3s rotation = { transform->aFaceAnglePitch, transform->aFaceAngleYaw, transform->aFaceAngleRoll };
+        Vec3s rotation = { transform->aFaceAnglePitch, transform->aFaceAngleYaw,
+                           transform->aFaceAngleRoll };
         Vec3f position = { transform->aPosX, transform->aPosY, transform->aPosZ };
         mtxf_rotate_zxy_and_translate(m, position, rotation);
 
@@ -118,18 +115,22 @@ static void engine_surface_from_lib_surface( struct Surface *surface, const stru
         Vec3f v2 = { x2, y2, z2 };
         Vec3f v3 = { x3, y3, z3 };
 
-        mtxf_mul_vec3f( m, v1 );
-        mtxf_mul_vec3f( m, v2 );
-        mtxf_mul_vec3f( m, v3 );
+        mtxf_mul_vec3f(m, v1);
+        mtxf_mul_vec3f(m, v2);
+        mtxf_mul_vec3f(m, v3);
 
-        x1 = v1[0]; y1 = v1[1]; z1 = v1[2];
-        x2 = v2[0]; y2 = v2[1]; z2 = v2[2];
-        x3 = v3[0]; y3 = v3[1]; z3 = v3[2];
+        x1 = v1[0];
+        y1 = v1[1];
+        z1 = v1[2];
+        x2 = v2[0];
+        y2 = v2[1];
+        z2 = v2[2];
+        x3 = v3[0];
+        y3 = v3[1];
+        z3 = v3[2];
 
         surface->transform = transform;
-    }
-    else
-    {
+    } else {
         surface->transform = NULL;
     }
 
@@ -158,14 +159,14 @@ static void engine_surface_from_lib_surface( struct Surface *surface, const stru
 
     if (mag < 0.0001) {
         DEBUG_PRINT("ERROR: normal magnitude is very close to zero:");
-        DEBUG_PRINT("v1 %i %i %i", x1, y1, z1 );
-        DEBUG_PRINT("v2 %i %i %i", x2, y2, z2 );
-        DEBUG_PRINT("v3 %i %i %i", x3, y3, z3 );
+        DEBUG_PRINT("v1 %i %i %i", x1, y1, z1);
+        DEBUG_PRINT("v2 %i %i %i", x2, y2, z2);
+        DEBUG_PRINT("v3 %i %i %i", x3, y3, z3);
         surface->isValid = 0;
         return;
     }
 
-    mag = (f32)(1.0 / mag);
+    mag = (f32) (1.0 / mag);
     nx *= mag;
     ny *= mag;
     nz *= mag;
@@ -208,89 +209,80 @@ static void engine_surface_from_lib_surface( struct Surface *surface, const stru
     surface->isValid = 1;
 }
 
-uint32_t loaded_surface_iter_group_count( void )
-{
+uint32_t loaded_surface_iter_group_count(void) {
     return 1 + s_surface_object_count;
 }
 
-uint32_t loaded_surface_iter_group_size( uint32_t groupIndex )
-{
-    if( groupIndex == 0 )
+uint32_t loaded_surface_iter_group_size(uint32_t groupIndex) {
+    if (groupIndex == 0)
         return s_static_surface_count;
 
-    return s_surface_object_list[ groupIndex - 1 ].surfaceCount;
+    return s_surface_object_list[groupIndex - 1].surfaceCount;
 }
 
-struct Surface *loaded_surface_iter_get_at_index( uint32_t groupIndex, uint32_t surfaceIndex )
-{
-    if( groupIndex == 0 )
-        return &s_static_surface_list[ surfaceIndex ];
+struct Surface *loaded_surface_iter_get_at_index(uint32_t groupIndex, uint32_t surfaceIndex) {
+    if (groupIndex == 0)
+        return &s_static_surface_list[surfaceIndex];
 
-    return &s_surface_object_list[ groupIndex - 1 ].engineSurfaces[ surfaceIndex ];
+    return &s_surface_object_list[groupIndex - 1].engineSurfaces[surfaceIndex];
 }
 
-void surfaces_load_static( const struct SM64Surface *surfaceArray, uint32_t numSurfaces )
-{
-    if( s_static_surface_list != NULL )
-        free( s_static_surface_list );
+void surfaces_load_static(const struct SM64Surface *surfaceArray, uint32_t numSurfaces) {
+    if (s_static_surface_list != NULL)
+        free(s_static_surface_list);
 
     s_static_surface_count = numSurfaces;
-    s_static_surface_list = malloc( sizeof( struct Surface ) * numSurfaces );
+    s_static_surface_list = malloc(sizeof(struct Surface) * numSurfaces);
 
-    for( int i = 0; i < numSurfaces; ++i )
-        engine_surface_from_lib_surface( &s_static_surface_list[i], &surfaceArray[i], NULL );
+    for (int i = 0; i < numSurfaces; ++i)
+        engine_surface_from_lib_surface(&s_static_surface_list[i], &surfaceArray[i], NULL);
 }
 
-uint32_t surfaces_load_object( const struct SM64SurfaceObject *surfaceObject )
-{
+uint32_t surfaces_load_object(const struct SM64SurfaceObject *surfaceObject) {
     bool pickedOldIndex = false;
     uint32_t idx = s_surface_object_count;
 
-    for( int i = 0; i < s_surface_object_count; ++i )
-    {
-        if( s_surface_object_list[i].surfaceCount == 0 )
-        {
+    for (int i = 0; i < s_surface_object_count; ++i) {
+        if (s_surface_object_list[i].surfaceCount == 0) {
             pickedOldIndex = true;
             idx = i;
             break;
         }
     }
 
-    if( !pickedOldIndex )
-    {
+    if (!pickedOldIndex) {
         idx = s_surface_object_count;
         s_surface_object_count++;
-        s_surface_object_list = realloc( s_surface_object_list, s_surface_object_count * sizeof( struct LoadedSurfaceObject ));
+        s_surface_object_list =
+            realloc(s_surface_object_list, s_surface_object_count * sizeof(struct LoadedSurfaceObject));
     }
 
     struct LoadedSurfaceObject *obj = &s_surface_object_list[idx];
 
     obj->surfaceCount = surfaceObject->surfaceCount;
 
-    obj->transform = malloc( sizeof( struct SurfaceObjectTransform ));
-    init_transform( obj->transform, &surfaceObject->transform );
+    obj->transform = malloc(sizeof(struct SurfaceObjectTransform));
+    init_transform(obj->transform, &surfaceObject->transform);
 
-    obj->libSurfaces = malloc( obj->surfaceCount * sizeof( struct SM64Surface ));
-    memcpy( obj->libSurfaces, surfaceObject->surfaces, obj->surfaceCount * sizeof( struct SM64Surface ));
+    obj->libSurfaces = malloc(obj->surfaceCount * sizeof(struct SM64Surface));
+    memcpy(obj->libSurfaces, surfaceObject->surfaces, obj->surfaceCount * sizeof(struct SM64Surface));
 
-    obj->engineSurfaces = malloc( obj->surfaceCount * sizeof( struct Surface ));
-    for( int i = 0; i < obj->surfaceCount; ++i )
-        engine_surface_from_lib_surface( &obj->engineSurfaces[i], &obj->libSurfaces[i], obj->transform );
+    obj->engineSurfaces = malloc(obj->surfaceCount * sizeof(struct Surface));
+    for (int i = 0; i < obj->surfaceCount; ++i)
+        engine_surface_from_lib_surface(&obj->engineSurfaces[i], &obj->libSurfaces[i], obj->transform);
 
     return idx;
 }
 
-void surfaces_unload_object( uint32_t objId )
-{
-    if( objId >= s_surface_object_count || s_surface_object_list[objId].surfaceCount == 0 )
-    {
+void surfaces_unload_object(uint32_t objId) {
+    if (objId >= s_surface_object_count || s_surface_object_list[objId].surfaceCount == 0) {
         DEBUG_PRINT("Tried to unload non-existant surface object with ID: %u", objId);
         return;
     }
 
-    free( s_surface_object_list[objId].transform );
-    free( s_surface_object_list[objId].libSurfaces );
-    free( s_surface_object_list[objId].engineSurfaces );
+    free(s_surface_object_list[objId].transform);
+    free(s_surface_object_list[objId].libSurfaces);
+    free(s_surface_object_list[objId].engineSurfaces);
 
     s_surface_object_list[objId].surfaceCount = 0;
     s_surface_object_list[objId].transform = NULL;
@@ -298,40 +290,35 @@ void surfaces_unload_object( uint32_t objId )
     s_surface_object_list[objId].engineSurfaces = NULL;
 }
 
-void surface_object_update_transform( uint32_t objId, const struct SM64ObjectTransform *newTransform )
-{
-    if( objId >= s_surface_object_count || s_surface_object_list[objId].surfaceCount == 0 )
-    {
+void surface_object_update_transform(uint32_t objId, const struct SM64ObjectTransform *newTransform) {
+    if (objId >= s_surface_object_count || s_surface_object_list[objId].surfaceCount == 0) {
         DEBUG_PRINT("Tried to update non-existant surface object with ID: %u", objId);
         return;
     }
 
-    update_transform( s_surface_object_list[objId].transform, newTransform );
-    for( int i = 0; i < s_surface_object_list[objId].surfaceCount; ++i )
-    {
+    update_transform(s_surface_object_list[objId].transform, newTransform);
+    for (int i = 0; i < s_surface_object_list[objId].surfaceCount; ++i) {
         struct LoadedSurfaceObject *obj = &s_surface_object_list[objId];
-        engine_surface_from_lib_surface( &obj->engineSurfaces[i], &obj->libSurfaces[i], obj->transform );
+        engine_surface_from_lib_surface(&obj->engineSurfaces[i], &obj->libSurfaces[i], obj->transform);
     }
 }
 
-struct SurfaceObjectTransform *surfaces_object_get_transform_ptr( uint32_t objId )
-{
-    if( objId >= s_surface_object_count || s_surface_object_list[objId].surfaceCount == 0 )
+struct SurfaceObjectTransform *surfaces_object_get_transform_ptr(uint32_t objId) {
+    if (objId >= s_surface_object_count || s_surface_object_list[objId].surfaceCount == 0)
         return NULL;
 
     return s_surface_object_list[objId].transform;
 }
 
-void surfaces_unload_all( void )
-{
-    free( s_static_surface_list );
+void surfaces_unload_all(void) {
+    free(s_static_surface_list);
     s_static_surface_count = 0;
     s_static_surface_list = NULL;
 
-    for( int i = 0; i < s_surface_object_count; ++i )
-        surfaces_unload_object( i );
+    for (int i = 0; i < s_surface_object_count; ++i)
+        surfaces_unload_object(i);
 
-    free( s_surface_object_list );
+    free(s_surface_object_list);
     s_surface_object_count = 0;
     s_surface_object_list = NULL;
 }

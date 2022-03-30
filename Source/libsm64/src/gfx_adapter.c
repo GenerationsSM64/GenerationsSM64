@@ -24,46 +24,46 @@ static float *s_colorPtr;
 static float *s_normalPtr;
 static float *s_uvPtr;
 
-static void bind_output_buffer(struct SM64MarioGeometryBuffer* outBuffer)
-{
+static void bind_output_buffer(struct SM64MarioGeometryBuffer *outBuffer) {
     s_outBuffer = outBuffer;
-    s_trianglePtr = outBuffer->position + (u32)outBuffer->numTrianglesUsed * 9;
-    s_colorPtr = outBuffer->color + (u32)outBuffer->numTrianglesUsed * 9;
-    s_normalPtr = outBuffer->normal + (u32)outBuffer->numTrianglesUsed * 9;
-    s_uvPtr = outBuffer->uv + (u32)outBuffer->numTrianglesUsed * 6;
+    s_trianglePtr = outBuffer->position + (u32) outBuffer->numTrianglesUsed * 9;
+    s_colorPtr = outBuffer->color + (u32) outBuffer->numTrianglesUsed * 9;
+    s_normalPtr = outBuffer->normal + (u32) outBuffer->numTrianglesUsed * 9;
+    s_uvPtr = outBuffer->uv + (u32) outBuffer->numTrianglesUsed * 6;
 }
 
-static void mtxf_mul_vec3f_x(Mat4 mtx, Vec3f b, float w, Vec3f out)
-{
+static void mtxf_mul_vec3f_x(Mat4 mtx, Vec3f b, float w, Vec3f out) {
     out[0] = b[0] * mtx[0][0] + b[1] * mtx[1][0] + b[2] * mtx[2][0] + w * mtx[3][0];
     out[1] = b[0] * mtx[0][1] + b[1] * mtx[1][1] + b[2] * mtx[2][1] + w * mtx[3][1];
     out[2] = b[0] * mtx[0][2] + b[1] * mtx[1][2] + b[2] * mtx[2][2] + w * mtx[3][2];
 }
 
-static void convert_uv_to_atlas( float *atlas_uv_out, short tc[] )
-{
-    float u = (((tc[0] * s_scaleS >> 16) - 8*s_uls) / 32.0f + 0.5f) / s_texWidth;
-    float v = (((tc[1] * s_scaleT >> 16) - 8*s_ult) / 32.0f + 0.5f) / s_texHeight;
+static void convert_uv_to_atlas(float *atlas_uv_out, short tc[]) {
+    float u = (((tc[0] * s_scaleS >> 16) - 8 * s_uls) / 32.0f + 0.5f) / s_texWidth;
+    float v = (((tc[1] * s_scaleT >> 16) - 8 * s_ult) / 32.0f + 0.5f) / s_texHeight;
 
-    atlas_uv_out[0] = u * s_texWidth / 64.0f / (float)NUM_USED_TEXTURES + (float)s_textureIndex / (float)NUM_USED_TEXTURES;
+    atlas_uv_out[0] = u * s_texWidth / 64.0f / (float) NUM_USED_TEXTURES
+                      + (float) s_textureIndex / (float) NUM_USED_TEXTURES;
     atlas_uv_out[1] = v * s_texHeight / 64.0f;
 }
 
-static void convert_triangle(Vtx* vdata, int64_t v00, int64_t v01, int64_t v02, float normalSign)
-{
+static void convert_triangle(Vtx *vdata, int64_t v00, int64_t v01, int64_t v02, float normalSign) {
     float x0 = vdata[v00].v.ob[0], y0 = vdata[v00].v.ob[1], z0 = vdata[v00].v.ob[2];
     float x1 = vdata[v01].v.ob[0], y1 = vdata[v01].v.ob[1], z1 = vdata[v01].v.ob[2];
     float x2 = vdata[v02].v.ob[0], y2 = vdata[v02].v.ob[1], z2 = vdata[v02].v.ob[2];
-    Vec3f p0 = { (float)x0, (float)y0, (float)z0 };
-    Vec3f p1 = { (float)x1, (float)y1, (float)z1 };
-    Vec3f p2 = { (float)x2, (float)y2, (float)z2 };
+    Vec3f p0 = { (float) x0, (float) y0, (float) z0 };
+    Vec3f p1 = { (float) x1, (float) y1, (float) z1 };
+    Vec3f p2 = { (float) x2, (float) y2, (float) z2 };
 
     signed char nx0 = vdata[v00].n.n[0], ny0 = vdata[v00].n.n[1], nz0 = vdata[v00].n.n[2];
     signed char nx1 = vdata[v01].n.n[0], ny1 = vdata[v01].n.n[1], nz1 = vdata[v01].n.n[2];
     signed char nx2 = vdata[v02].n.n[0], ny2 = vdata[v02].n.n[1], nz2 = vdata[v02].n.n[2];
-    Vec3f n0 = { ((float)nx0) / 128.0f * normalSign, ((float)ny0) / 128.0f * normalSign, ((float)nz0) / 128.0f * normalSign };
-    Vec3f n1 = { ((float)nx1) / 128.0f * normalSign, ((float)ny1) / 128.0f * normalSign, ((float)nz1) / 128.0f * normalSign };
-    Vec3f n2 = { ((float)nx2) / 128.0f * normalSign, ((float)ny2) / 128.0f * normalSign, ((float)nz2) / 128.0f * normalSign };
+    Vec3f n0 = { ((float) nx0) / 128.0f * normalSign, ((float) ny0) / 128.0f * normalSign,
+                 ((float) nz0) / 128.0f * normalSign };
+    Vec3f n1 = { ((float) nx1) / 128.0f * normalSign, ((float) ny1) / 128.0f * normalSign,
+                 ((float) nz1) / 128.0f * normalSign };
+    Vec3f n2 = { ((float) nx2) / 128.0f * normalSign, ((float) ny2) / 128.0f * normalSign,
+                 ((float) nz2) / 128.0f * normalSign };
 
     mtxf_mul_vec3f_x(s_curMatrix, p0, 1.0f, s_trianglePtr);
     s_trianglePtr += 3;
@@ -93,14 +93,14 @@ static void convert_triangle(Vtx* vdata, int64_t v00, int64_t v01, int64_t v02, 
     *s_colorPtr++ = s_curColor[1];
     *s_colorPtr++ = s_curColor[2];
 
-    if (s_textureOn)
-    {
-        convert_uv_to_atlas(s_uvPtr, vdata[v00].v.tc); s_uvPtr += 2;
-        convert_uv_to_atlas(s_uvPtr, vdata[v01].v.tc); s_uvPtr += 2;
-        convert_uv_to_atlas(s_uvPtr, vdata[v02].v.tc); s_uvPtr += 2;
-    }
-    else
-    {
+    if (s_textureOn) {
+        convert_uv_to_atlas(s_uvPtr, vdata[v00].v.tc);
+        s_uvPtr += 2;
+        convert_uv_to_atlas(s_uvPtr, vdata[v01].v.tc);
+        s_uvPtr += 2;
+        convert_uv_to_atlas(s_uvPtr, vdata[v02].v.tc);
+        s_uvPtr += 2;
+    } else {
         *s_uvPtr++ = 1.0f;
         *s_uvPtr++ = 1.0f;
         *s_uvPtr++ = 1.0f;
@@ -110,26 +110,21 @@ static void convert_triangle(Vtx* vdata, int64_t v00, int64_t v01, int64_t v02, 
     }
 }
 
-static void process_display_list( void *dl )
-{
-    int64_t *ptr = (int64_t *)dl;
+static void process_display_list(void *dl) {
+    int64_t *ptr = (int64_t *) dl;
     Vtx *vdata = NULL;
 
-    for( ;; )
-    {
-        switch( *ptr++ )
-        {
-            case GFXCMD_VertexData: 
-            {
+    for (;;) {
+        switch (*ptr++) {
+            case GFXCMD_VertexData: {
                 UNUSED int64_t v = *ptr++;
                 UNUSED int64_t n = *ptr++;
                 UNUSED int64_t v0 = *ptr++;
-                vdata = (Vtx*)v;
+                vdata = (Vtx *) v;
                 break;
             }
 
-            case GFXCMD_Triangle:
-            {
+            case GFXCMD_Triangle: {
                 int64_t v00 = *ptr++;
                 int64_t v01 = *ptr++;
                 int64_t v02 = *ptr++;
@@ -141,69 +136,66 @@ static void process_display_list( void *dl )
                     convert_triangle(vdata, v02, v01, v00, -1.0f);
                 }
 
-                s_outBuffer->numTrianglesUsed = (uint16_t)((s_trianglePtr - s_outBuffer->position) / 9);
+                s_outBuffer->numTrianglesUsed =
+                    (uint16_t) ((s_trianglePtr - s_outBuffer->position) / 9);
 
                 break;
             }
 
-            case GFXCMD_Light:
-            {
+            case GFXCMD_Light: {
                 int64_t l = *ptr++;
                 int64_t n = *ptr++;
 
-                if( n == 1 )
-                {
-                    Light *data = (Light*)l;
-                    s_curColor[0] = (float)data->l.col[0] / 255.0f;
-                    s_curColor[1] = (float)data->l.col[1] / 255.0f;
-                    s_curColor[2] = (float)data->l.col[2] / 255.0f;
+                if (n == 1) {
+                    Light *data = (Light *) l;
+                    s_curColor[0] = (float) data->l.col[0] / 255.0f;
+                    s_curColor[1] = (float) data->l.col[1] / 255.0f;
+                    s_curColor[2] = (float) data->l.col[2] / 255.0f;
                 }
-                
+
                 break;
             }
 
-            case GFXCMD_Texture:
-            {
+            case GFXCMD_Texture: {
                 int64_t s = *ptr++;
                 int64_t t = *ptr++;
                 int64_t on = *ptr++;
 
-                s_scaleS = (uint16_t)s;
-                s_scaleT = (uint16_t)t;
-                s_textureOn = (int)on;
+                s_scaleS = (uint16_t) s;
+                s_scaleT = (uint16_t) t;
+                s_textureOn = (int) on;
 
                 break;
             }
 
-            case GFXCMD_SetTextureImage:
-            {
+            case GFXCMD_SetTextureImage: {
                 int64_t i = *ptr++;
 
-                s_textureIndex = (int)i;
+                s_textureIndex = (int) i;
                 s_texWidth = mario_tex_widths[s_textureIndex];
                 s_texHeight = mario_tex_heights[s_textureIndex];
 
-                bind_output_buffer(i == mario_texture_wings_half_1 || i == mario_texture_wings_half_2 ? &s_outBuffers->punchThrough : &s_outBuffers->opaque);
+                bind_output_buffer(i == mario_texture_wings_half_1 || i == mario_texture_wings_half_2
+                                       ? &s_outBuffers->punchThrough
+                                       : &s_outBuffers->opaque);
                 break;
             }
 
-            case GFXCMD_SetTileSize:
-            {
+            case GFXCMD_SetTileSize: {
                 int64_t uls = *ptr++;
                 int64_t ult = *ptr++;
                 ptr++; // lrs
                 ptr++; // lrt
 
-                s_uls = (uint16_t)uls;
-                s_ult = (uint16_t)ult;
-                
+                s_uls = (uint16_t) uls;
+                s_ult = (uint16_t) ult;
+
                 break;
             }
 
-            case GFXCMD_SubDisplayList:
-            {
+            case GFXCMD_SubDisplayList: {
                 int64_t dl = *ptr++;
-                process_display_list( (void*)dl );
+                process_display_list((void *) dl);
                 break;
             }
 
@@ -212,22 +204,18 @@ static void process_display_list( void *dl )
         }
     }
 
-break_top:
-    {}
+break_top : {}
 }
 
-void gSPMatrix( void *pkt, Mtx *m, uint8_t flags )
-{
-    guMtxL2F( s_curMatrix, m );
+void gSPMatrix(void *pkt, Mtx *m, uint8_t flags) {
+    guMtxL2F(s_curMatrix, m);
 }
 
-void gSPDisplayList( void *pkt, struct DisplayListNode *dl )
-{
-    process_display_list( (void*)dl );
+void gSPDisplayList(void *pkt, struct DisplayListNode *dl) {
+    process_display_list((void *) dl);
 }
 
-void gfx_adapter_bind_output_buffers( struct SM64MarioGeometryBuffers *outBuffers )
-{
+void gfx_adapter_bind_output_buffers(struct SM64MarioGeometryBuffers *outBuffers) {
     s_outBuffers = outBuffers;
     s_outBuffers->opaque.numTrianglesUsed = 0;
     s_outBuffers->punchThrough.numTrianglesUsed = 0;

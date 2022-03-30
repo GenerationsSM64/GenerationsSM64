@@ -1,7 +1,6 @@
 #pragma once
 
-enum GFXAdapterCommands
-{
+enum GFXAdapterCommands {
     GFXCMD_None = 0,
     GFXCMD_VertexData,
     GFXCMD_Triangle,

@@ -100,6 +100,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	if (mario == -1)
 		return;
 
+	if (!sm64_mario_bind(mario))
+		return;
+
 	hh::math::CQuaternion rotation;
 	hh::math::CVector velocity;
 
@@ -122,7 +125,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		stateName == "JumpSpring" ||
 		stateName == "SpecialJump";
 
-	const bool isLavaBoost = sm64_mario_is_lava_boost(mario);
+	const bool isLavaBoost = sm64_mario_is_lava_boost();
 	ignoreInput &= !isLavaBoost;
 	controlSonic &= !isLavaBoost;
 
@@ -156,7 +159,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	}
 
 	disableWallCollision = controlSonic;
-	sm64_mario_set_external_control(mario, controlSonic);
+	sm64_mario_set_external_control(controlSonic);
 
 	DebugDrawText::log(format("State: %s", player->m_StateMachine.GetCurrentState()->GetStateName().c_str()));
 	DebugDrawText::log(format("Animation: %s", playerContext->GetCurrentAnimationName().c_str()));
@@ -173,13 +176,13 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		velocity *= 100.0f / 30.0f;
 		rotation.normalize();
 
-		sm64_mario_set_position(mario, position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f, TRUE);
-		sm64_mario_set_velocity(mario, velocity.x(), velocity.y(), velocity.z(), (rotation * hh::math::CVector::UnitZ()).dot(velocity));
+		sm64_mario_set_position(position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f, TRUE);
+		sm64_mario_set_velocity(velocity.x(), velocity.y(), velocity.z(), (rotation * hh::math::CVector::UnitZ()).dot(velocity));
 
 		const auto direction = (rotation * hh::math::CVector::UnitZ()).normalized();
 
 		const float yaw = atan2(direction.x(), direction.z());
-		sm64_mario_set_face_angle(mario, asin(-direction.y()), yaw, 0);
+		sm64_mario_set_face_angle(asin(-direction.y()), yaw, 0);
 
 		overrideMatrix = Eigen::Translation3f(position * 100.0f) * rotation;
 		useOverrideMatrix = true;
@@ -250,17 +253,17 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		if (animId >= 0)
 		{
-			sm64_mario_set_animation_lock(mario, true);
-			sm64_mario_set_animation(mario, animId);
+			sm64_mario_set_animation_lock(TRUE);
+			sm64_mario_set_animation(animId);
 		}
 		else
-			sm64_mario_set_animation_lock(mario, false);
+			sm64_mario_set_animation_lock(FALSE);
 
 		if (animName == "Walk")
-			sm64_mario_set_action(mario, ACT_WALKING);
+			sm64_mario_set_action(ACT_WALKING);
 
 		else if (!playerContext->m_Grounded)
-			sm64_mario_set_action(mario, ACT_FREEFALL);
+			sm64_mario_set_action(ACT_FREEFALL);
 	}
 
 	else
@@ -272,7 +275,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		useOverrideMatrix = false;
 
-		sm64_mario_set_animation_lock(mario, false);
+		sm64_mario_set_animation_lock(FALSE);
 	}
 
 	const auto& padState = Sonic::CInputState::GetInstance()->GetPadState();
@@ -314,12 +317,12 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		inputs.buttonZ = 0;
 	}
 	else if (padState.IsTapped(Sonic::eKeyState_B))
-		sm64_mario_toggle_wing_cap(mario);
+		sm64_mario_toggle_wing_cap();
 
 	const auto viewPosition = camera->m_MyCamera.m_View * position.head<3>();
-	sm64_mario_set_camera_to_object(mario, viewPosition.x() * 100.0f, viewPosition.y() * 100.0f, viewPosition.z() * 100.0f);
+	sm64_mario_set_camera_to_object(viewPosition.x() * 100.0f, viewPosition.y() * 100.0f, viewPosition.z() * 100.0f);
 
-	sm64_mario_tick(mario, &inputs, &state, &buffers);
+	sm64_mario_tick(&inputs, &state, &buffers);
 
 	if (state.isUpdateFrame)
 	{
@@ -331,7 +334,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		Sonic::CRigidBody* prevRigidBody = ::prevRigidBody;
 		::prevRigidBody = nullptr;
 
-		if (!controlSonic && !sm64_mario_is_airborne(mario))
+		if (!controlSonic && !sm64_mario_is_airborne())
 		{
 			// Detect if we are on a moving rigid body.
 			// Convert Mario's position to rigid body's local space using the previous frame,
@@ -368,10 +371,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			pos -= (pos - point).dot(frontVec) * frontVec / 2.0f;
 		}
 
-		sm64_mario_set_position(mario, pos.x() * 100.0f, pos.y() * 100.0f, pos.z() * 100.0f, FALSE);
+		sm64_mario_set_position(pos.x() * 100.0f, pos.y() * 100.0f, pos.z() * 100.0f, FALSE);
 	}
 
-	sm64_mario_post_tick(mario, &state);
+	sm64_mario_post_tick(&state);
 
 	if (state.isUpdateFrame)
 	{
@@ -380,20 +383,20 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		const bool dead = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Dead] != 0;
 
 		if (!dead && !damaged && damaging)
-			sm64_mario_take_damage(mario);
+			sm64_mario_take_damage();
 
 		damaged = damaging;
 
-		sm64_mario_set_health(mario, dead ? 0 : 0x500);
+		sm64_mario_set_health(dead ? 0 : 0x500);
 
 		FUNCTION_PTR(void, __thiscall, changeCollision,
 			Sonic::Player::CSonicClassicContext::GetInstance() ? 0xDC30A0 : 0xDFCD20, void* This, size_t type);
 
-		const bool attacking = sm64_mario_attacking(mario);
+		const bool attacking = sm64_mario_attacking();
 		changeCollision(playerContext, attacking ? 2 : 0);
 
 		setCollision(TypeSonicBoost, attacking);
-		setCollision(TypeSonicStomping, sm64_mario_diving(mario));
+		setCollision(TypeSonicStomping, sm64_mario_diving());
 	}
 
 	if (!controlSonic)
@@ -480,7 +483,7 @@ HOOK(void, __fastcall, CPlayerAddCallback, 0xE799F0, Sonic::Player::CPlayer* Thi
 HOOK(void, __fastcall, ProcMsgSetPosition, 0xE772D0, Sonic::Player::CPlayer* This, void* Edx, Sonic::Message::MsgSetPosition& msgSetPosition)
 {
 	if (mario >= 0)
-		sm64_mario_set_position(mario, msgSetPosition.m_Position.x() * 100.0f, msgSetPosition.m_Position.y() * 100.0f, msgSetPosition.m_Position.z() * 100.0f, TRUE);
+		sm64_mario_set_position(msgSetPosition.m_Position.x() * 100.0f, msgSetPosition.m_Position.y() * 100.0f, msgSetPosition.m_Position.z() * 100.0f, TRUE);
 
 	originalProcMsgSetPosition(This, Edx, msgSetPosition);
 }

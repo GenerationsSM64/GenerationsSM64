@@ -32,7 +32,7 @@ constexpr f32 limit = 100000000.0f;
 
 Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& direction, int flags = 20, float offset = 50.0f, float length = limit)
 {
-	const hh::math::CVector begin(x * 0.01f, y * 0.01f + offset * 0.01f, z * 0.01f);
+	const hh::math::CVector begin(x * 0.01f, (y + offset) * 0.01f, z * 0.01f);
 	const hh::math::CVector end = begin + direction * length * 0.01f;
 
 	hh::math::CVector position;

@@ -143,4 +143,9 @@
     <ClInclude Include="src\load_tex_data.h" />
     <ClInclude Include="src\obj_pool.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format" />
+    <None Include=".clang-tidy" />
+    <None Include="import-mario-geo.py" />
+  </ItemGroup>
 </Project>
