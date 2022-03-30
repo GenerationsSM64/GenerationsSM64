@@ -76,13 +76,13 @@ extern "C" f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface** pceil)
 	s32 flags = 20;
 
 	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (playerContext)
+	if (playerContext && sm64_mario_is_airborne())
 	{
 		const hh::math::CVector position(posX * 0.01f, posY * 0.01f, posZ * 0.01f);
 
 		// Check for a one-way object.
 		RayCastQuery query;
-		if (rayCastRigidBody(playerContext, query, position, position + hh::math::CVector(0, 4.0f, 0)))
+		if (rayCastRigidBody(playerContext, query, position, position + hh::math::CVector(0, 6.4f, 0)))
 		{
 			// Compare collision type.
 			if (query.rigidBody && *(size_t*)((char*)query.rigidBody + 12) == *(size_t*)0x1E61C30) // onewayCollisionType

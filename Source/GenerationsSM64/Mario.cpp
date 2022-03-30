@@ -113,6 +113,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		stateName == "HangOn" ||
 		stateName == "LightSpeedDash" ||
 		stateName == "TramRiding" ||
+		stateName == "Stepping" ||
 		strstr(stateName.c_str(), "ExternalControl") ||
 		strstr(stateName.c_str(), "Grind") ||
 		strstr(stateName.c_str(), "Homing") ||
@@ -368,7 +369,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			getPathControllerData(playerContext->m_sp2DPathController_01.get(), &point, &upVec, &leftVec);
 
 			const auto frontVec = upVec.cross(leftVec).normalized();
-			pos -= (pos - point).dot(frontVec) * frontVec / 2.0f;
+			pos -= (pos - point).dot(frontVec) * frontVec * 0.8f;
 		}
 
 		sm64_mario_set_position(pos.x() * 100.0f, pos.y() * 100.0f, pos.z() * 100.0f, FALSE);
