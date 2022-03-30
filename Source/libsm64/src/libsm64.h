@@ -86,6 +86,7 @@ extern void sm64_mario_set_external_control(uint8_t value);
 extern uint8_t sm64_mario_is_lava_boost(void);
 extern void sm64_mario_set_action(uint32_t action);
 extern uint8_t sm64_mario_is_airborne(void);
+extern uint8_t sm64_mario_pushing_wall(void);
 
 extern uint32_t sm64_surface_object_create(const struct SM64SurfaceObject *surfaceObject);
 extern void sm64_surface_object_move(uint32_t objectId, const struct SM64ObjectTransform *transform);

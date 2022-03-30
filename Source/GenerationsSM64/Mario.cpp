@@ -349,7 +349,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 				if (hkpRigidBody)
 				{
 					const auto& rigidBodyMatrix =
-						*(hh::math::CMatrix*)(hkpRigidBody +0xF0); // accesses hkpRigidBody?
+						*(hh::math::CMatrix*)(hkpRigidBody + 0xF0); // accesses hkpRigidBody?
 
 					if (prevRigidBody == query.rigidBody)
 						pos = rigidBodyMatrix * (prevRigidBodyMatrixInverse * pos.head<3>());
@@ -394,9 +394,12 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		const bool attacking = sm64_mario_attacking();
 		changeCollision(playerContext, attacking ? 2 : 0);
-
 		setCollision(TypeSonicBoost, attacking);
-		setCollision(TypeSonicStomping, sm64_mario_diving());
+
+		const bool diving = sm64_mario_diving();
+		setCollision(TypeSonicStomping, diving);
+
+		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Boost] = attacking || diving;
 	}
 
 	if (!controlSonic)
@@ -533,6 +536,28 @@ HOOK(void, __cdecl, SetSticks, 0x9C6AE0, char* data, short lowerBound, short upp
 	*(float*)(data + 4) = (float)y;
 }
 
+// The game is unable to detect box collision
+// due to being pushed too far away from it.
+
+// Due to this, we should do the "pushing" by
+// checking whether Mario is pushing a wall.
+void __declspec(naked) pushBoxMidAsmHook()
+{
+	static uint32_t pushBoxAddrOnFalse = 0xE58CB0;
+	static uint32_t pushBoxAddrOnTrue = 0xE588AA;
+
+	__asm
+	{
+		call sm64_mario_pushing_wall
+		cmp al, 0
+		jnz onTrue
+		jmp [pushBoxAddrOnFalse]
+
+	onTrue:
+		jmp [pushBoxAddrOnTrue]
+	}
+}
+
 void initMario()
 {
 	INSTALL_HOOK(CGameplayFlowStageOnExit);
@@ -542,6 +567,7 @@ void initMario()
 	INSTALL_HOOK(ProcMsgSetPosition);
 	INSTALL_HOOK(ProcMsgRestartStage);
 	INSTALL_HOOK(SetSticks);
+	WRITE_JUMP(0xE58899, pushBoxMidAsmHook);
 
 	// Allocate a continuous vertex buffer and give parts of it to vertex elements.
 	const auto bufferHeap = new float[(3 + 3 + 3 + 2) * 3 * SM64_GEO_MAX_TRIANGLES * 2];

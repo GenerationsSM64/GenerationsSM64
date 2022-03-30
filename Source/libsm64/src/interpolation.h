@@ -5,6 +5,7 @@
 #include "decomp/include/PR/ultratypes.h"
 
 void set_interpolation_interval(u32 interval);
+f32 get_interpolation_delta_time(void);
 void increment_interpolation_frame(void);
 u16 get_interpolation_area_update_counter(void);
 u8 get_interpolation_should_update(void);

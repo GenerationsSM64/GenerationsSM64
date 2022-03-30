@@ -21,6 +21,10 @@ void set_interpolation_interval(u32 interval) {
     }
 }
 
+f32 get_interpolation_delta_time(void) {
+    return 1.0f / (30.0f * (f32) interpolationInterval);
+}
+
 void increment_interpolation_frame(void) {
     interpolationFrame = interpolationFrame + 1;
     if (interpolationInterval > 1) {

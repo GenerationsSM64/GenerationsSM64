@@ -396,6 +396,14 @@ uint8_t sm64_mario_is_airborne(void) {
     return (gMarioState->action & ACT_FLAG_AIR) != 0;
 }
 
+uint8_t sm64_mario_pushing_wall(void) {
+    if (!g_state) {
+        return FALSE;
+    }
+
+    return (gMarioState->flags & MARIO_UNKNOWN_31) != 0;
+}
+
 uint32_t sm64_surface_object_create(const struct SM64SurfaceObject *surfaceObject) {
     uint32_t id = surfaces_load_object(surfaceObject);
     return id;
