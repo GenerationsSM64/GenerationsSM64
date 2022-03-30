@@ -260,11 +260,19 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		else
 			sm64_mario_set_animation_lock(FALSE);
 
+		int action = -1;
+
 		if (animName == "Walk")
-			sm64_mario_set_action(ACT_WALKING);
+			action = ACT_WALKING;
+
+		else if (stateName == "Goal")
+			action = ACT_IDLE;
 
 		else if (!playerContext->m_Grounded)
-			sm64_mario_set_action(ACT_FREEFALL);
+			action = ACT_FREEFALL;
+
+		if (action >= 0)
+			sm64_mario_set_action(action);
 	}
 
 	else
