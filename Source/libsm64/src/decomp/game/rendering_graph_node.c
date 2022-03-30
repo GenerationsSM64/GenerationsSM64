@@ -1259,7 +1259,11 @@ void geo_process_root_hack_single_node(struct GraphNode *node)
         mtxf_mul( gMatStack[++gMatStackIndex], scale, rotTran );
     }
 
-    geo_set_animation_globals(&gMarioObject->header.gfx.animInfo, 1);
+    if (gMarioObject->header.gfx.animInfo.curAnim != NULL) {
+        geo_set_animation_globals(&gMarioObject->header.gfx.animInfo,
+                                  (gMarioObject->header.gfx.node.flags & GRAPH_RENDER_HAS_ANIMATION)
+                                      != 0);
+    }
 
     gCurGraphNodeRoot = (struct GraphNodeRoot *)node;
     if (node->children != NULL) {
