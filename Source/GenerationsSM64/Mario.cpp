@@ -177,7 +177,12 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		velocity *= 100.0f / 30.0f;
 		rotation.normalize();
 
-		sm64_mario_set_position(position.x() * 100.0f, position.y() * 100.0f, position.z() * 100.0f, TRUE);
+		// Offset Mario's position if pointing down to prevent clipping when external control ends.
+		auto offsetedPosition = position;
+		if (playerContext->m_UpVector.y() <= 0.01f)
+			offsetedPosition += playerContext->m_UpVector * 0.6f;
+
+		sm64_mario_set_position(offsetedPosition.x() * 100.0f, offsetedPosition.y() * 100.0f, offsetedPosition.z() * 100.0f, TRUE);
 		sm64_mario_set_velocity(velocity.x(), velocity.y(), velocity.z(), (rotation * hh::math::CVector::UnitZ()).dot(velocity));
 
 		const auto direction = (rotation * hh::math::CVector::UnitZ()).normalized();
