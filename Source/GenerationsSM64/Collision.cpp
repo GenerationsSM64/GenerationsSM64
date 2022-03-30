@@ -167,7 +167,10 @@ extern "C" f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface** pfloor)
 
 		const auto& stateName = playerContext->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 
-		if (stateName == "OnIce")
+		if (stateName == "HipSliding")
+			surface->type = SURFACE_VERY_SLIPPERY;
+
+		else if (stateName == "OnIce")
 			surface->type = SURFACE_ICE;
 	}
 
