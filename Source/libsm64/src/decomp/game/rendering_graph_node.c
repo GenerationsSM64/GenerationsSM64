@@ -1222,14 +1222,15 @@ void geo_process_root_hack_single_node(struct GraphNode *node)
     Mat4* throwMatrix = NULL;
     f32* overrideMatrix = geo_get_override_matrix();
 
+    Vec3f currScale;
+    vec3f_interpolate(currScale, gMarioObject->header.gfx.prevScale, gMarioObject->header.gfx.scale);
+
     if (overrideMatrix) {
         mtxf_copy(gMatStack[++gMatStackIndex], overrideMatrix);
+        mtxf_scale_vec3f(gMatStack[gMatStackIndex], gMatStack[gMatStackIndex], currScale);
     }
 
     else if (gMarioObject->header.gfx.throwMatrix != NULL) {
-        Vec3f currScale;
-        vec3f_interpolate(currScale, gMarioObject->header.gfx.prevScale, gMarioObject->header.gfx.scale);
-
         Mat4 currThrowMatrix;
 
         if (gMarioObject->header.gfx.hasPrevThrowMatrix)
@@ -1246,11 +1247,9 @@ void geo_process_root_hack_single_node(struct GraphNode *node)
     else {
         Vec3s currAngle;
         Vec3f currPos;
-        Vec3f currScale;
 
         vec3s_angle_interpolate(currAngle, gMarioObject->header.gfx.prevAngle, gMarioObject->header.gfx.angle);
         vec3f_interpolate(currPos, gMarioObject->header.gfx.prevPos, gMarioObject->header.gfx.pos);
-        vec3f_interpolate(currScale, gMarioObject->header.gfx.prevScale, gMarioObject->header.gfx.scale);
 
         Mat4 identity, scale, rotTran;
         mtxf_identity( identity );
