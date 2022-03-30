@@ -49,6 +49,67 @@ static void convert_uv_to_atlas( float *atlas_uv_out, short tc[] )
     atlas_uv_out[1] = v * s_texHeight / 64.0f;
 }
 
+static void convert_triangle(Vtx* vdata, int64_t v00, int64_t v01, int64_t v02, float normalSign)
+{
+    float x0 = vdata[v00].v.ob[0], y0 = vdata[v00].v.ob[1], z0 = vdata[v00].v.ob[2];
+    float x1 = vdata[v01].v.ob[0], y1 = vdata[v01].v.ob[1], z1 = vdata[v01].v.ob[2];
+    float x2 = vdata[v02].v.ob[0], y2 = vdata[v02].v.ob[1], z2 = vdata[v02].v.ob[2];
+    Vec3f p0 = { (float)x0, (float)y0, (float)z0 };
+    Vec3f p1 = { (float)x1, (float)y1, (float)z1 };
+    Vec3f p2 = { (float)x2, (float)y2, (float)z2 };
+
+    signed char nx0 = vdata[v00].n.n[0], ny0 = vdata[v00].n.n[1], nz0 = vdata[v00].n.n[2];
+    signed char nx1 = vdata[v01].n.n[0], ny1 = vdata[v01].n.n[1], nz1 = vdata[v01].n.n[2];
+    signed char nx2 = vdata[v02].n.n[0], ny2 = vdata[v02].n.n[1], nz2 = vdata[v02].n.n[2];
+    Vec3f n0 = { ((float)nx0) / 128.0f * normalSign, ((float)ny0) / 128.0f * normalSign, ((float)nz0) / 128.0f * normalSign };
+    Vec3f n1 = { ((float)nx1) / 128.0f * normalSign, ((float)ny1) / 128.0f * normalSign, ((float)nz1) / 128.0f * normalSign };
+    Vec3f n2 = { ((float)nx2) / 128.0f * normalSign, ((float)ny2) / 128.0f * normalSign, ((float)nz2) / 128.0f * normalSign };
+
+    mtxf_mul_vec3f_x(s_curMatrix, p0, 1.0f, s_trianglePtr);
+    s_trianglePtr += 3;
+    mtxf_mul_vec3f_x(s_curMatrix, p1, 1.0f, s_trianglePtr);
+    s_trianglePtr += 3;
+    mtxf_mul_vec3f_x(s_curMatrix, p2, 1.0f, s_trianglePtr);
+    s_trianglePtr += 3;
+
+    // TODO normals arent correct under non-uniform scale. multiply by inverse/transpose
+    mtxf_mul_vec3f_x(s_curMatrix, n0, 0.0f, s_normalPtr);
+    vec3f_normalize(s_normalPtr);
+    s_normalPtr += 3;
+    mtxf_mul_vec3f_x(s_curMatrix, n1, 0.0f, s_normalPtr);
+    vec3f_normalize(s_normalPtr);
+    s_normalPtr += 3;
+    mtxf_mul_vec3f_x(s_curMatrix, n2, 0.0f, s_normalPtr);
+    vec3f_normalize(s_normalPtr);
+    s_normalPtr += 3;
+
+    *s_colorPtr++ = s_curColor[0];
+    *s_colorPtr++ = s_curColor[1];
+    *s_colorPtr++ = s_curColor[2];
+    *s_colorPtr++ = s_curColor[0];
+    *s_colorPtr++ = s_curColor[1];
+    *s_colorPtr++ = s_curColor[2];
+    *s_colorPtr++ = s_curColor[0];
+    *s_colorPtr++ = s_curColor[1];
+    *s_colorPtr++ = s_curColor[2];
+
+    if (s_textureOn)
+    {
+        convert_uv_to_atlas(s_uvPtr, vdata[v00].v.tc); s_uvPtr += 2;
+        convert_uv_to_atlas(s_uvPtr, vdata[v01].v.tc); s_uvPtr += 2;
+        convert_uv_to_atlas(s_uvPtr, vdata[v02].v.tc); s_uvPtr += 2;
+    }
+    else
+    {
+        *s_uvPtr++ = 1.0f;
+        *s_uvPtr++ = 1.0f;
+        *s_uvPtr++ = 1.0f;
+        *s_uvPtr++ = 1.0f;
+        *s_uvPtr++ = 1.0f;
+        *s_uvPtr++ = 1.0f;
+    }
+}
+
 static void process_display_list( void *dl )
 {
     int64_t *ptr = (int64_t *)dl;
@@ -74,62 +135,10 @@ static void process_display_list( void *dl )
                 int64_t v02 = *ptr++;
                 UNUSED int64_t flag0 = *ptr++;
 
-                float x0 = vdata[v00].v.ob[0], y0 = vdata[v00].v.ob[1], z0 = vdata[v00].v.ob[2];
-                float x1 = vdata[v01].v.ob[0], y1 = vdata[v01].v.ob[1], z1 = vdata[v01].v.ob[2];
-                float x2 = vdata[v02].v.ob[0], y2 = vdata[v02].v.ob[1], z2 = vdata[v02].v.ob[2];
-                Vec3f p0 = { (float)x0, (float)y0, (float)z0 };
-                Vec3f p1 = { (float)x1, (float)y1, (float)z1 };
-                Vec3f p2 = { (float)x2, (float)y2, (float)z2 };
+                convert_triangle(vdata, v00, v01, v02, 1.0f);
 
-                signed char nx0 = vdata[v00].n.n[0], ny0 = vdata[v00].n.n[1], nz0 = vdata[v00].n.n[2];
-                signed char nx1 = vdata[v01].n.n[0], ny1 = vdata[v01].n.n[1], nz1 = vdata[v01].n.n[2];
-                signed char nx2 = vdata[v02].n.n[0], ny2 = vdata[v02].n.n[1], nz2 = vdata[v02].n.n[2];
-                Vec3f n0 = { ((float)nx0) / 128.0f, ((float)ny0) / 128.0f, ((float)nz0) / 128.0f };
-                Vec3f n1 = { ((float)nx1) / 128.0f, ((float)ny1) / 128.0f, ((float)nz1) / 128.0f };
-                Vec3f n2 = { ((float)nx2) / 128.0f, ((float)ny2) / 128.0f, ((float)nz2) / 128.0f };
-
-                mtxf_mul_vec3f_x( s_curMatrix, p0, 1.0f, s_trianglePtr );
-                s_trianglePtr += 3;
-                mtxf_mul_vec3f_x( s_curMatrix, p1, 1.0f, s_trianglePtr );
-                s_trianglePtr += 3;
-                mtxf_mul_vec3f_x( s_curMatrix, p2, 1.0f, s_trianglePtr );
-                s_trianglePtr += 3;
-
-                // TODO normals arent correct under non-uniform scale. multiply by inverse/transpose
-                mtxf_mul_vec3f_x( s_curMatrix, n0, 0.0f, s_normalPtr );
-                vec3f_normalize( s_normalPtr );
-                s_normalPtr += 3;
-                mtxf_mul_vec3f_x( s_curMatrix, n1, 0.0f, s_normalPtr );
-                vec3f_normalize( s_normalPtr );
-                s_normalPtr += 3;
-                mtxf_mul_vec3f_x( s_curMatrix, n2, 0.0f, s_normalPtr );
-                vec3f_normalize( s_normalPtr );
-                s_normalPtr += 3;
-
-                *s_colorPtr++ = s_curColor[0];
-                *s_colorPtr++ = s_curColor[1];
-                *s_colorPtr++ = s_curColor[2];
-                *s_colorPtr++ = s_curColor[0];
-                *s_colorPtr++ = s_curColor[1];
-                *s_colorPtr++ = s_curColor[2];
-                *s_colorPtr++ = s_curColor[0];
-                *s_colorPtr++ = s_curColor[1];
-                *s_colorPtr++ = s_curColor[2];
-
-                if( s_textureOn )
-                {
-                    convert_uv_to_atlas( s_uvPtr, vdata[v00].v.tc ); s_uvPtr += 2;
-                    convert_uv_to_atlas( s_uvPtr, vdata[v01].v.tc ); s_uvPtr += 2;
-                    convert_uv_to_atlas( s_uvPtr, vdata[v02].v.tc ); s_uvPtr += 2;
-                }
-                else
-                {
-                    *s_uvPtr++ = 1.0f;
-                    *s_uvPtr++ = 1.0f;
-                    *s_uvPtr++ = 1.0f;
-                    *s_uvPtr++ = 1.0f;
-                    *s_uvPtr++ = 1.0f;
-                    *s_uvPtr++ = 1.0f;
+                if (s_outBuffer == &s_outBuffers->punchThrough) {
+                    convert_triangle(vdata, v02, v01, v00, -1.0f);
                 }
 
                 s_outBuffer->numTrianglesUsed = (uint16_t)((s_trianglePtr - s_outBuffer->position) / 9);
