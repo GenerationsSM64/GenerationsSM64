@@ -70,3 +70,23 @@ void getPathControllerData(Sonic::CPathController* controller, hh::math::CVector
 		call[pFunc]
 	}
 }
+
+bool rayCast(const size_t collisionType, RayCastQuery& query, const hh::math::CVector& begin, const hh::math::CVector& end)
+{
+	static void* const pFunc = (void*)0x10BE270;
+
+	__asm
+	{
+		mov edx, collisionType
+		mov ecx, end
+		mov	ebx, 0x1E5E2F0
+		mov	ebx, [ebx]
+		mov eax, [ebx + 5ECh]
+		mov edi, [eax]
+		mov esi, query
+		mov eax, begin
+		push eax
+
+		call[pFunc]
+	}
+}

@@ -354,7 +354,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			// Convert Mario's position to rigid body's local space using the previous frame,
 			// then convert it back to world space using the current matrix.
 			RayCastQuery query;
-			if (rayCastRigidBody(playerContext, query,
+			if (rayCastPlayerTerrain(playerContext, query,
 				pos + hh::math::CVector(0, +0.5f, 0),
 				pos + hh::math::CVector(0, -0.5f, 0)) && query.rigidBody)
 			{

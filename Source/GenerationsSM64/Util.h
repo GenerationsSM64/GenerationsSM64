@@ -39,5 +39,7 @@ std::unique_ptr<uint8_t[]> readAllBytes(const std::string& filePath, size_t& siz
 void* setCollision(CollisionType collisionType, bool enabled);
 void getPathControllerData(Sonic::CPathController* controller, hh::math::CVector* point, hh::math::CVector* invec, hh::math::CVector* outvec);
 
-static inline FUNCTION_PTR(bool, __stdcall, rayCastRigidBody, 0xE58140, Sonic::Player::CPlayerContext* playerContext, RayCastQuery& query, 
+static inline FUNCTION_PTR(bool, __stdcall, rayCastPlayerTerrain, 0xE58140, Sonic::Player::CPlayerContext* playerContext, RayCastQuery& query, 
 	const hh::math::CVector& begin, const hh::math::CVector& end);
+
+bool rayCast(const size_t collisionType, RayCastQuery& query, const hh::math::CVector& begin, const hh::math::CVector& end);

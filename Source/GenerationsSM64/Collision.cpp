@@ -1,97 +1,57 @@
 #include "Mod.h"
 #include "Util.h"
 
-bool rayCast(hh::math::CVector const& begin, hh::math::CVector const& end,
-             hh::math::CVector& position, hh::math::CVector& normal, uint32_t filter
-)
-{
-	static void* const pFunc = (void*)0x10BE3B0;
-
-	__asm
-	{
-		mov		ecx, end
-		push	ecx
-		mov		edx, normal
-		push	edx
-		mov		eax, position
-		push	eax
-		mov		ebx, 0x1E5E2F0
-		mov		ebx, [ebx]
-		mov     eax, [ebx + 5ECh]
-		mov     edi, [eax]
-		mov		edx, filter
-		mov		eax, begin
-
-		call[pFunc]
-	}
-}
-
 Surface surfaces[0x1000];
 int32_t surfaceIndex = 0;
 constexpr f32 limit = 100000000.0f;
 
-Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& direction, int flags = 20, float offset = 50.0f, float length = limit)
+Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& direction, bool ignoreOneway = false, float offset = 50.0f, float length = limit)
 {
 	const hh::math::CVector begin(x * 0.01f, (y + offset) * 0.01f, z * 0.01f);
 	const hh::math::CVector end = begin + direction * length * 0.01f;
 
-	hh::math::CVector position;
-	hh::math::CVector normal;
+	RayCastQuery query;
 
-	if (!rayCast(begin, end, position, normal, flags))
+	if (!rayCast(*(size_t*)0x1E0AFB4, query, begin, end)) // TypePlayerTerrain
 		return nullptr;
 
-	normal.normalize();
-	position += position.cwiseAbs().cwiseProduct(normal.cwiseSign()) * 0.0000002f;
-	position *= 100.0f;
+	if (ignoreOneway && query.rigidBody && *(size_t*)((char*)query.rigidBody + 12) == *(size_t*)0x1E61C30) // onewayCollisionType
+		return nullptr;
+
+	query.normal.normalize();
+	query.position += query.position.cwiseAbs().cwiseProduct(query.normal.cwiseSign()) * 0.0000002f;
+	query.position *= 100.0f;
 
 	if (pheight)
-		*pheight = position.y();
+		*pheight = query.position.y();
 
 	Surface* surface = &surfaces[surfaceIndex % _countof(surfaces)];
 	memset(surface, 0, sizeof(Surface));
 	++surfaceIndex;
 
-	surface->vertex1[0] = position.x();
-	surface->vertex1[1] = position.y();
-	surface->vertex1[2] = position.z();
+	surface->vertex1[0] = query.position.x();
+	surface->vertex1[1] = query.position.y();
+	surface->vertex1[2] = query.position.z();
 
-	surface->vertex2[0] = position.x();
-	surface->vertex2[1] = position.y();
-	surface->vertex2[2] = position.z();
+	surface->vertex2[0] = query.position.x();
+	surface->vertex2[1] = query.position.y();
+	surface->vertex2[2] = query.position.z();
 
-	surface->vertex3[0] = position.x();
-	surface->vertex3[1] = position.y();
-	surface->vertex3[2] = position.z();
+	surface->vertex3[0] = query.position.x();
+	surface->vertex3[1] = query.position.y();
+	surface->vertex3[2] = query.position.z();
 
-	surface->normal.x = normal.x();
-	surface->normal.y = normal.y();
-	surface->normal.z = normal.z();
+	surface->normal.x = query.normal.x();
+	surface->normal.y = query.normal.y();
+	surface->normal.z = query.normal.z();
 
 	return surface;
 }
 
 extern "C" f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface** pceil)
 {
-	s32 flags = 20;
-
-	const auto playerContext = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (playerContext && sm64_mario_is_airborne())
-	{
-		const hh::math::CVector position(posX * 0.01f, posY * 0.01f, posZ * 0.01f);
-
-		// Check for a one-way object.
-		RayCastQuery query;
-		if (rayCastRigidBody(playerContext, query, position, position + hh::math::CVector(0, 6.4f, 0)))
-		{
-			// Compare collision type.
-			if (query.rigidBody && *(size_t*)((char*)query.rigidBody + 12) == *(size_t*)0x1E61C30) // onewayCollisionType
-				flags |= 1; // Exclude objects.
-		}
-	}
-
 	f32 height = limit;
-	*pceil = rayCast(posX, posY, posZ, &height, hh::math::CVector::UnitY(), flags, 0.0f); // Cast a ray upwards.
+	*pceil = rayCast(posX, posY, posZ, &height, hh::math::CVector::UnitY(), true, 0.0f); // Cast a ray upwards.
 	return height;
 }
 
@@ -213,7 +173,7 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 
 	for (auto& direction : directions)
 	{
-		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, 20, data->offsetY, data->radius);
+		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, true, data->offsetY, data->radius);
 
 		if (!surface)
 			continue;
