@@ -35,6 +35,13 @@ void load_mario_textures_from_rom(uint8_t *rom, uint8_t *outTexture) {
     mio0_decode(in_buf, out_buf, NULL);
 
     for (int i = 0; i < NUM_USED_TEXTURES; ++i) {
+        // Environment map texture for Metal Mario.
+        // Causes color leak in the golden button
+        // so ignore it for now as we don't use it.
+        if (i == 0) {
+            continue;
+        }
+
         uint8_t *raw = out_buf + mario_tex_offsets[i];
         rgba *img = raw2rgba(raw, mario_tex_widths[i], mario_tex_heights[i], 16);
         blt_image_to_atlas(img, i, mario_tex_widths[i], mario_tex_heights[i], outTexture);
