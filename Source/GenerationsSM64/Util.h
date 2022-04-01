@@ -42,4 +42,5 @@ void getPathControllerData(Sonic::CPathController* controller, hh::math::CVector
 static inline FUNCTION_PTR(bool, __stdcall, rayCastPlayerTerrain, 0xE58140, Sonic::Player::CPlayerContext* playerContext, RayCastQuery& query, 
 	const hh::math::CVector& begin, const hh::math::CVector& end);
 
-bool rayCast(const size_t collisionType, RayCastQuery& query, const hh::math::CVector& begin, const hh::math::CVector& end);
+bool rayCast(size_t collisionType, RayCastQuery& query, const hh::math::CVector& begin, const hh::math::CVector& end);
+bool rigidBodyHasProperty(Sonic::CRigidBody* rigidBody, size_t property, bool& enabled);

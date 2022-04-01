@@ -5,7 +5,7 @@ Surface surfaces[0x1000];
 int32_t surfaceIndex = 0;
 constexpr f32 limit = 100000000.0f;
 
-Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& direction, bool ignoreOneway = false, float offset = 50.0f, float length = limit)
+Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& direction, bool ignoreOneway = false, float offset = 50.0f, float length = limit, bool ignoreBreakable = false)
 {
 	const hh::math::CVector begin(x * 0.01f, (y + offset) * 0.01f, z * 0.01f);
 	const hh::math::CVector end = begin + direction * length * 0.01f;
@@ -18,8 +18,16 @@ Surface* rayCast(f32 x, f32 y, f32 z, f32* pheight, const hh::math::CVector& dir
 	if (ignoreOneway && query.rigidBody && *(size_t*)((char*)query.rigidBody + 12) == *(size_t*)0x1E61C30) // onewayCollisionType
 		return nullptr;
 
-	query.normal.normalize();
-	query.position += query.position.cwiseAbs().cwiseProduct(query.normal.cwiseSign()) * 0.0000002f;
+	// Mario often bonks onto walls before the boost collision
+	// can break the object. By ignoring breakable object walls
+	// while attacking, we can work around this.
+	if (ignoreBreakable)
+	{
+		bool enabled;
+		if (rigidBodyHasProperty(query.rigidBody, 8193, enabled) && enabled)
+			return nullptr;
+	}
+
 	query.position *= 100.0f;
 
 	if (pheight)
@@ -182,6 +190,8 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 		wallDirectionCurrentFaceAngle = state.faceAngle;
 	}
 
+	const bool hasBoostCollision = sm64_mario_should_use_boost_collision();
+
 	hh::math::CVector directionCurr;
 
 	// New version of the wall detection code fixes BLJs, somehow.
@@ -195,7 +205,7 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 
 	for (auto& direction : wallDirections)
 	{
-		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, true, data->offsetY, data->radius);
+		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, true, data->offsetY, data->radius, hasBoostCollision);
 
 		if (!surface)
 			continue;

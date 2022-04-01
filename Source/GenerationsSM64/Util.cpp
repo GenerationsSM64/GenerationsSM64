@@ -90,3 +90,17 @@ bool rayCast(const size_t collisionType, RayCastQuery& query, const hh::math::CV
 		call[pFunc]
 	}
 }
+
+bool rigidBodyHasProperty(Sonic::CRigidBody* rigidBody, const size_t property, bool& enabled)
+{
+	static void* const pFunc = (void*)0x10DDA20;
+
+	__asm
+	{
+		mov esi, rigidBody
+		mov edi, property
+		mov eax, enabled
+		push eax
+		call [pFunc]
+	}
+}
