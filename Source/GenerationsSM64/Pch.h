@@ -30,11 +30,12 @@ extern "C"
 #include <decomp/global_state.h>
 #include <decomp/audio/external.h>
 #include <decomp/audio/load.h>
+#include <decomp/audio/synthesis.h>
 #include <decomp/engine/surface_collision.h>
 #include <decomp/include/mario_animation_ids.h>
 #include <decomp/include/sm64.h>
 #include <decomp/include/surface_terrains.h>
+
 }
-#include <decomp/pc/audio/audio_wasapi.h>
 
 #include "../../Dependencies/DllMods/Source/GenerationsParameterEditor/Include/DebugDrawText.h"

@@ -22,6 +22,6 @@ extern "C" void __declspec(dllexport) Init(ModInfo * info)
 	initAudio();
 	initDatabase();
 	initMario();
-	initFPS();
+	initUpdate();
 	initCollision();
 }

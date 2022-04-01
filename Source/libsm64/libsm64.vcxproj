@@ -53,7 +53,6 @@
     <ClCompile Include="src\decomp\mario\model.inc.c" />
     <ClCompile Include="src\decomp\memory.c" />
     <ClCompile Include="src\decomp\pc\alBnkfNew.c" />
-    <ClCompile Include="src\decomp\pc\audio\audio_wasapi.cpp" />
     <ClCompile Include="src\decomp\pc\mixer.c" />
     <ClCompile Include="src\decomp\pc\ultra_reimplementation.c" />
     <ClCompile Include="src\decomp\tools\libmio0.c" />
@@ -131,8 +130,6 @@
     <ClInclude Include="src\decomp\mario\geo.inc.h" />
     <ClInclude Include="src\decomp\mario\model.inc.h" />
     <ClInclude Include="src\decomp\memory.h" />
-    <ClInclude Include="src\decomp\pc\audio\audio_api.h" />
-    <ClInclude Include="src\decomp\pc\audio\audio_wasapi.h" />
     <ClInclude Include="src\decomp\pc\compat.h" />
     <ClInclude Include="src\decomp\pc\libaudio_internal.h" />
     <ClInclude Include="src\decomp\pc\libultra_internal.h" />
