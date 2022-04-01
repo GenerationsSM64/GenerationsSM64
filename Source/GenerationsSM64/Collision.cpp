@@ -140,25 +140,47 @@ extern "C" f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface** pfloor)
 
 bool disableWallCollision;
 
+const hh::math::CVector WALL_DIRECTIONS_BASE[] =
+{
+	-hh::math::CVector::UnitX(),
+	hh::math::CVector::UnitX(),
+	-hh::math::CVector::UnitZ(),
+	hh::math::CVector::UnitZ(),
+	hh::math::CVector(0.70710678118f, 0, 0.70710678118f),
+	hh::math::CVector(0.70710678118f, 0, -0.70710678118f),
+	hh::math::CVector(-0.70710678118f, 0, 0.70710678118f),
+	hh::math::CVector(-0.70710678118f, 0, -0.70710678118f),
+};
+
+hh::math::CVector wallDirections[_countof(WALL_DIRECTIONS_BASE)] =
+{
+	WALL_DIRECTIONS_BASE[0],
+	WALL_DIRECTIONS_BASE[1],
+	WALL_DIRECTIONS_BASE[2],
+	WALL_DIRECTIONS_BASE[3],
+	WALL_DIRECTIONS_BASE[4],
+	WALL_DIRECTIONS_BASE[5],
+	WALL_DIRECTIONS_BASE[6],
+	WALL_DIRECTIONS_BASE[7],
+};
+
+float wallDirectionCurrentFaceAngle;
+
 extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 {
 	if (disableWallCollision)
 		return 0;
 
-	hh::math::CQuaternion orientation;
-	orientation = Eigen::AngleAxisf(state.faceAngle, Eigen::Vector3f::UnitY());
-
-	const hh::math::CVector directions[] =
+	if (abs(state.faceAngle - wallDirectionCurrentFaceAngle) > 0.001f)
 	{
-		orientation * -hh::math::CVector::UnitX(),
-		orientation * hh::math::CVector::UnitX(),
-		orientation * -hh::math::CVector::UnitZ(),
-		orientation * hh::math::CVector::UnitZ(),
-		orientation * hh::math::CVector(0.70710678118f, 0, 0.70710678118f),
-		orientation * hh::math::CVector(0.70710678118f, 0, -0.70710678118f),
-		orientation * hh::math::CVector(-0.70710678118f, 0, 0.70710678118f),
-		orientation * hh::math::CVector(-0.70710678118f, 0, -0.70710678118f),
-	};
+		hh::math::CQuaternion orientation;
+		orientation = Eigen::AngleAxisf(state.faceAngle, Eigen::Vector3f::UnitY());
+
+		for (size_t i = 0; i < _countof(WALL_DIRECTIONS_BASE); i++)
+			wallDirections[i] = orientation * WALL_DIRECTIONS_BASE[i];
+
+		wallDirectionCurrentFaceAngle = state.faceAngle;
+	}
 
 	hh::math::CVector directionCurr;
 
@@ -171,7 +193,7 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 
 	data->numWalls = 0;
 
-	for (auto& direction : directions)
+	for (auto& direction : wallDirections)
 	{
 		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, true, data->offsetY, data->radius);
 
@@ -179,7 +201,7 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 			continue;
 
 		const bool bljTolerant = g_state->mgMarioStateVal.action == ACT_LONG_JUMP &&
-			directions[3].dot(hh::math::CVector(surface->normal.x, surface->normal.y, surface->normal.z)) > 0;
+			wallDirections[3].dot(hh::math::CVector(surface->normal.x, surface->normal.y, surface->normal.z)) > 0;
 
 		// Do the new checks only if we aren't BLJ tolerant.
 		if (!bljTolerant && abs(surface->normal.y) > 0.1f)
