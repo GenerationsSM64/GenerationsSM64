@@ -185,7 +185,11 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		sm64_mario_set_position(offsetedPosition.x() * 100.0f, offsetedPosition.y() * 100.0f, offsetedPosition.z() * 100.0f, TRUE);
 		sm64_mario_set_velocity(velocity.x(), velocity.y(), velocity.z(), (rotation * hh::math::CVector::UnitZ()).dot(velocity));
 
-		const auto direction = (rotation * hh::math::CVector::UnitZ()).normalized();
+		hh::math::CVector direction;
+		if (playerContext->m_HorizontalVelocity.squaredNorm() > 0.001f)
+			direction = playerContext->m_HorizontalVelocity.normalized();
+		else
+			direction = (rotation * hh::math::CVector::UnitZ()).normalized();
 
 		const float yaw = atan2(direction.x(), direction.z());
 		sm64_mario_set_face_angle(asin(-direction.y()), yaw, 0);
