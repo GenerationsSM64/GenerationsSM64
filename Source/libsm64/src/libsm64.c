@@ -348,8 +348,7 @@ void sm64_mario_toggle_wing_cap(void) {
 }
 
 void sm64_mario_take_damage(void) {
-    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE) && gMarioState->action != ACT_LAVA_BOOST
-        && gMarioState->action != ACT_LAVA_BOOST_LAND) {
+    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE) && gMarioState->action != ACT_LAVA_BOOST_LAND) {
         u32 action = ACT_FORWARD_GROUND_KB;
 
         if (gMarioState->action & (ACT_FLAG_SWIMMING | ACT_FLAG_METAL_WATER)) {
@@ -360,6 +359,20 @@ void sm64_mario_take_damage(void) {
 
         play_sound(SOUND_MARIO_ATTACKED, gMarioObject->header.gfx.cameraToObject);
         set_mario_action(gMarioState, action, 1);
+    }
+}
+
+void sm64_mario_take_shock_damage() {
+    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE) && gMarioState->action != ACT_LAVA_BOOST_LAND) {
+        play_sound(SOUND_MARIO_ATTACKED, gMarioObject->header.gfx.cameraToObject);
+        set_mario_action(gMarioState, ACT_SHOCKED, (gMarioState->action & ACT_FLAG_AIR) == 0);
+    }
+}
+
+void sm64_mario_take_fire_damage() {
+    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE) && gMarioState->action != ACT_LAVA_BOOST_LAND) {
+        play_sound(SOUND_MARIO_ON_FIRE, gMarioObject->header.gfx.cameraToObject);
+        set_mario_action(gMarioState, (gMarioState->action & ACT_FLAG_AIR) && gMarioState->vel[1] <= 0.0f ? ACT_BURNING_FALL : ACT_BURNING_JUMP, 1);
     }
 }
 
@@ -384,12 +397,13 @@ extern void sm64_mario_set_external_control(uint8_t value) {
     gMarioState->externalControl = value;
 }
 
-uint8_t sm64_mario_is_lava_boost(void) {
-    return gMarioState->action == ACT_LAVA_BOOST;
+uint8_t sm64_mario_is_invulnerable(void) {
+    return (gMarioState->action & ACT_FLAG_INVULNERABLE) != 0;
 }
 
 void sm64_mario_set_action(uint32_t action) {
-    if (gMarioState->action != ACT_FLYING && gMarioState->action != action
+    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE) && gMarioState->action != ACT_FLYING
+        && gMarioState->action != action
         && (action == ACT_WALKING || action == ACT_IDLE
             || (gMarioState->action & ACT_FLAG_AIR) != (action & ACT_FLAG_AIR))) {
         set_mario_action(gMarioState, action, 0);

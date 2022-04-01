@@ -20,6 +20,7 @@ float controlSonicTimer;
 bool controlSonicGrounded;
 Sonic::CRigidBody* prevRigidBody;
 hh::math::CMatrix prevRigidBodyMatrixInverse;
+bool fireDamage;
 
 void deleteMario()
 {
@@ -108,8 +109,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	const auto& stateName = player->m_StateMachine.GetCurrentState()->GetStateName();
 
+	const bool invulnerable = sm64_mario_is_invulnerable();
+
 	bool ignoreInput = 
-		playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl] ||
+		(!invulnerable && playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl]) ||
 		stateName == "HangOn" ||
 		stateName == "LightSpeedDash" ||
 		stateName == "TramRiding" ||
@@ -147,8 +150,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			controlSonicTimer = max(0.25f, controlSonicTimer);
 		}
 
-		// Abort if grounded flag doesn't match.
-		else if (playerContext->m_Grounded != controlSonicGrounded)
+		// Abort if grounded flag doesn't match, or we're invulnerable.
+		else if (playerContext->m_Grounded != controlSonicGrounded || invulnerable)
 			controlSonicTimer = 0.0f;
 
 		else
@@ -158,9 +161,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		}
 	}
 
-	const bool isLavaBoost = sm64_mario_is_lava_boost();
-	ignoreInput &= !isLavaBoost;
-	controlSonic &= !isLavaBoost;
+	DebugDrawText::log(format("%d", controlSonic));
 
 	disableWallCollision = controlSonic;
 	sm64_mario_set_external_control(controlSonic);
@@ -404,18 +405,24 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		const bool damaging = strstr(stateName.c_str(), "Damage") != nullptr;
 		const bool dead = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Dead] != 0;
 
-		if (!isLavaBoost)
+		if (!dead && !damaged && damaging)
 		{
-			if (!dead && !damaged && damaging)
+			if (stateName == "DamageShock")
+				sm64_mario_take_shock_damage();
+
+			else if (fireDamage)
+				sm64_mario_take_fire_damage();
+
+			else
 			{
 				sm64_mario_take_damage();
 
 				if (stateName == "PressDamage")
 					sm64_mario_squish();
 			}
-
-			damaged = damaging;
 		}
+
+		damaged = damaging;
 
 		sm64_mario_set_health(dead ? 0 : 0x500);
 
@@ -595,6 +602,18 @@ HOOK(void, __stdcall, StartOutOfControl, 0xE5AC00, Sonic::Player::CPlayerContext
 	return originalStartOutOfControl(playerContext, time >= 0 ? max(0.05f, time) : min(-0.05f, time));
 }
 
+HOOK(void, __fastcall, CPlayerSpeedStatePluginDamageFireEnter, 0x1233740, void* This)
+{
+	fireDamage = true;
+	originalCPlayerSpeedStatePluginDamageFireEnter(This);
+}
+
+HOOK(void, __fastcall, CPlayerSpeedStatePluginDamageFireLeave, 0x12335D0, void* This)
+{
+	fireDamage = false;
+	originalCPlayerSpeedStatePluginDamageFireLeave(This);
+}
+
 void initMario()
 {
 	INSTALL_HOOK(CGameplayFlowStageOnExit);
@@ -606,6 +625,8 @@ void initMario()
 	INSTALL_HOOK(SetSticks);
 	WRITE_JUMP(0xE58899, pushBoxMidAsmHook);
 	INSTALL_HOOK(StartOutOfControl);
+	INSTALL_HOOK(CPlayerSpeedStatePluginDamageFireEnter);
+	INSTALL_HOOK(CPlayerSpeedStatePluginDamageFireLeave);
 
 	// Allocate a continuous vertex buffer and give parts of it to vertex elements.
 	const auto bufferHeap = new float[(3 + 3 + 3 + 2) * 3 * SM64_GEO_MAX_TRIANGLES * 2];
