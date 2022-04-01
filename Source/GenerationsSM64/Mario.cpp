@@ -126,10 +126,6 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		stateName == "JumpSpring" ||
 		stateName == "SpecialJump";
 
-	const bool isLavaBoost = sm64_mario_is_lava_boost();
-	ignoreInput &= !isLavaBoost;
-	controlSonic &= !isLavaBoost;
-
 	if (controlSonic)
 	{
 		if (controlSonicTimer <= 0.0f)
@@ -158,6 +154,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 				controlSonicTimer = max(0.25f, controlSonicTimer);
 		}
 	}
+
+	const bool isLavaBoost = sm64_mario_is_lava_boost();
+	ignoreInput &= !isLavaBoost;
+	controlSonic &= !isLavaBoost;
 
 	disableWallCollision = controlSonic;
 	sm64_mario_set_external_control(controlSonic);
@@ -393,13 +393,17 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	if (state.isUpdateFrame)
 	{
 		static bool damaged;
+
 		const bool damaging = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] != 0;
 		const bool dead = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Dead] != 0;
 
-		if (!dead && !damaged && damaging)
-			sm64_mario_take_damage();
+		if (!isLavaBoost)
+		{
+			if (!dead && !damaged && damaging)
+				sm64_mario_take_damage();
 
-		damaged = damaging;
+			damaged = damaging;
+		}
 
 		sm64_mario_set_health(dead ? 0 : 0x500);
 
