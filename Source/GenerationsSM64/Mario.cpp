@@ -401,13 +401,18 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	{
 		static bool damaged;
 
-		const bool damaging = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] != 0;
+		const bool damaging = strstr(stateName.c_str(), "Damage") != nullptr;
 		const bool dead = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Dead] != 0;
 
 		if (!isLavaBoost)
 		{
 			if (!dead && !damaged && damaging)
+			{
 				sm64_mario_take_damage();
+
+				if (stateName == "PressDamage")
+					sm64_mario_squish();
+			}
 
 			damaged = damaging;
 		}

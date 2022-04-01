@@ -408,6 +408,12 @@ uint8_t sm64_mario_pushing_wall(void) {
     return (gMarioState->flags & MARIO_UNKNOWN_31) != 0;
 }
 
+void sm64_mario_squish() {
+    if (gMarioState->squishTimer == 0 || gMarioState->squishTimer == 0xFF) {
+        gMarioState->squishTimer = 30;
+    }
+}
+
 uint32_t sm64_surface_object_create(const struct SM64SurfaceObject *surfaceObject) {
     uint32_t id = surfaces_load_object(surfaceObject);
     return id;
