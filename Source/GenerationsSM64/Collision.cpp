@@ -66,7 +66,7 @@ extern "C" f32 find_ceil(f32 posX, f32 posY, f32 posZ, struct Surface** pceil)
 extern "C" f32 find_floor(f32 xPos, f32 yPos, f32 zPos, struct Surface** pfloor)
 {
 	f32 height = -limit;
-	Surface* surface = rayCast(xPos, yPos, zPos, &height, -hh::math::CVector::UnitY()); // Cast a ray downwards.
+	Surface* surface = rayCast(xPos, yPos, zPos, &height, -hh::math::CVector::UnitY(), false, 50, limit, sm64_mario_should_use_stomp_collision()); // Cast a ray downwards.
 
 	// NULL surface is going to cause crash. Create a dummy surface instead.
 	if (!surface)
