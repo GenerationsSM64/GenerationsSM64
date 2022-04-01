@@ -574,6 +574,11 @@ void __declspec(naked) pushBoxMidAsmHook()
 	}
 }
 
+HOOK(void, __stdcall, StartOutOfControl, 0xE5AC00, Sonic::Player::CPlayerContext* playerContext, float time)
+{
+	return originalStartOutOfControl(playerContext, time >= 0 ? max(0.05f, time) : min(-0.05f, time));
+}
+
 void initMario()
 {
 	INSTALL_HOOK(CGameplayFlowStageOnExit);
@@ -584,6 +589,7 @@ void initMario()
 	INSTALL_HOOK(ProcMsgRestartStage);
 	INSTALL_HOOK(SetSticks);
 	WRITE_JUMP(0xE58899, pushBoxMidAsmHook);
+	INSTALL_HOOK(StartOutOfControl);
 
 	// Allocate a continuous vertex buffer and give parts of it to vertex elements.
 	const auto bufferHeap = new float[(3 + 3 + 3 + 2) * 3 * SM64_GEO_MAX_TRIANGLES * 2];
