@@ -1759,6 +1759,9 @@ s32 act_flying(struct MarioState *m) {
             set_mario_animation(m, MARIO_ANIM_WING_CAP_FLY);
             m->actionState = 1;
         }
+    } else if (m->actionState == 1
+               && m->marioObj->header.gfx.animInfo.animID != MARIO_ANIM_WING_CAP_FLY) {
+        set_mario_animation(m, MARIO_ANIM_WING_CAP_FLY);
     }
 
     update_flying(m);
