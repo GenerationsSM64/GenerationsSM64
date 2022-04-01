@@ -161,13 +161,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		}
 	}
 
-	DebugDrawText::log(format("%d", controlSonic));
-
 	disableWallCollision = controlSonic;
 	sm64_mario_set_external_control(controlSonic);
-
-	DebugDrawText::log(format("State: %s", player->m_StateMachine.GetCurrentState()->GetStateName().c_str()));
-	DebugDrawText::log(format("Animation: %s", playerContext->GetCurrentAnimationName().c_str()));
 
 	float animOffset = 0.0f;
 	float scale = 1.0f;
@@ -278,7 +273,8 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		if (animName == "Walk")
 			action = ACT_WALKING;
 
-		else if (animName == "Stand" || stateName == "Goal" || animName == "StartEventDash" || animName == "StartEventStand")
+		else if (animName == "Stand" || stateName == "Goal" || 
+			animName == "StartEventDash" || animName == "StartEventStand" || strstr(animName.c_str(), "GateTurn"))
 			action = ACT_IDLE;
 
 		else if (!playerContext->m_Grounded)
