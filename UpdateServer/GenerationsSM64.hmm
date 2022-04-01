@@ -1,0 +1,285 @@
+Patch "Patches"
+
+// Patch "Disable Spin Jump Particles" by "Hyper"
+WriteProtected<byte>(0x15E902C, 0x00);
+WriteProtected<byte>(0x15F99DC, 0x00);
+
+// Patch "Disable Boost Particles" by "Hyper"
+WriteProtected<byte>(0x15A3568, 0x00); /* ef_bo_sha_yh1_boost1 */
+WriteProtected<byte>(0x15E9048, 0x00); /* ef_ch_sng_yh1_boost1 */
+WriteProtected<byte>(0x15E9060, 0x00); /* ef_ch_sng_yh1_boost2 */
+WriteProtected<byte>(0x15EE774, 0x00); /* ef_bo_sha_yh1_hyper_sn */
+WriteProtected<byte>(0x15EE78C, 0x00); /* ef_bo_sha_yh1_hyper_sn */
+WriteProtected<byte>(0x15F99F8, 0x00); /* ef_ch_sps_yh1_boost1 */
+WriteProtected<byte>(0x15F9A10, 0x00); /* ef_ch_sps_yh1_boost2 */
+WriteProtected<byte>(0x164330C, 0x00); /* ef_st_ssh_yh1_bobsled_boost */
+
+// Patch "Disable Character Action Voices" by "Hyper"
+WriteProtected<uint>(0xDF0B96, 0xFFFFFF);  /* 3002_action01 (used for Unleashed jump selector) */
+WriteProtected<uint>(0xDF0C08, 0xFFFFFF);  /* 3002_action01 (used for Unleashed jump selector) */
+WriteProtected<uint>(0xDFC993, 0xFFFFFF);  /* 3002_action01 (used for bouncing off physics objects) */
+WriteProtected<uint>(0xE4B684, 0xFFFFFF);  /* 3002_action01 (used for tricks) */
+WriteProtected<uint>(0xE4B8E0, 0xFFFFFF);  /* 3002_action01 (used for trick finish) */
+WriteProtected<uint>(0xE57E6F, 0xFFFFFF);  /* 3002_action01 (used for jumping) */
+WriteProtected<uint>(0x11D7B8C, 0xFFFFFF); /* 3002_action01 (used for grinding) */
+WriteProtected<uint>(0x123B475, 0xFFFFFF); /* 3002_action01 (used for cannons) */
+WriteProtected<uint>(0x1252740, 0xFFFFFF); /* 3002_action01 (used for squat kick) */
+WriteProtected<uint>(0x1117EF4, 0xFFFFFF); /* 3002_stumble */
+WriteProtected<uint>(0xE0248C, 0xFFFFFF);  /* 3002_damage01 */
+WriteProtected<uint>(0xE02496, 0xFFFFFF);  /* 3002_damage02 */
+WriteProtected<uint>(0xE024A0, 0xFFFFFF);  /* 3002_damage03 */
+WriteProtected<uint>(0xE024AA, 0xFFFFFF);  /* 3002_damage04 */
+WriteProtected<uint>(0xDF0B63, 0xFFFFFF);  /* 3002_damage05 (used for Unleashed jump selector) */
+WriteProtected<uint>(0xE4466E, 0xFFFFFF);  /* 3002_strain (used for pushing) */
+WriteProtected<uint>(0xE023E3, 0xFFFFFF);  /* 3002_dead (used for dying from enemies) */
+WriteProtected<uint>(0xE55D3D, 0xFFFFFF);  /* 3002_dead (used for dying from falling) */
+WriteProtected<uint>(0x1117CEB, 0xFFFFFF); /* 3002_action03 (used for boost) */
+WriteProtected<uint>(0x1254E04, 0xFFFFFF); /* 3002_action03 (used for stomping) */
+WriteProtected<uint>(0xDF3710, 0xFFFFFF);  /* 3002_action04 (used for drift) */
+WriteProtected<uint>(0x1117D09, 0xFFFFFF); /* 3002_action04 (used for boost) */
+WriteProtected<uint>(0x11184E4, 0xFFFFFF); /* 3002_action04 (used for homing success) */
+WriteProtected<uint>(0x1118512, 0xFFFFFF); /* 3002_action03 (used for homing success) */
+WriteProtected<uint>(0x1119B1F, 0xFFFFFF); /* 3002_action04 (used for board drift) */
+WriteProtected<uint>(0xE3DADD, 0xFFFFFF);  /* 3002_success01 (used for blast off) */
+WriteProtected<uint>(0xE462AA, 0xFFFFFF);  /* 3002_success01 (used for pulleys) */
+WriteProtected<uint>(0x1117D27, 0xFFFFFF); /* 3002_action05 (used for boost) */
+WriteProtected<uint>(0x1231971, 0xFFFFFF); /* 3002_action05 (used for light dash) */
+WriteProtected<uint>(0xDF0B63, 0xFFFFFF);  /* 3002_damage06 */
+WriteProtected<uint>(0x11D72DC, 0xFFFFFF); /* 3002_action06 */
+
+// Patch "Disable Blue Trail" by "Hyper"
+WriteProtected<byte>(0xE5FDE5, 0xE9, 0x19, 0x01, 0x00, 0x00);
+
+// Patch "Disable Sonic Smoke Trail" by "Sajid"
+Write<byte>(0x1A44AE2, 0)
+WriteNop(0x11A2D28, 23)
+
+// Patch "Disable Wall Jump" by "Sajid"
+WriteNop(0x00E17F51, 5)
+
+// Patch "Disable Air Dash" by "Sajid"
+WriteNop(0x00DFFE89, 2)
+
+// Patch "Disable Stomp Particles"
+WriteProtected<byte>(0x15E9094, 0x00);
+WriteProtected<byte>(0x15E90AC, 0x00);
+WriteProtected<byte>(0x15E90C4, 0x00);
+
+// Patch "Disable Boost Gauge" by "Hyper"
+WriteNop(0x109B8DD, 2);
+
+// Patch "Disable Boost Camera Plugin"
+WriteProtected<byte>(0x10E7E90, 0xC2, 0x08, 0x00);
+WriteProtected<byte>(0x10E7D40, 0xC2, 0x04, 0x00);
+
+// Patch "Disable Boost Audio Filter" by "Hyper"
+WriteProtected<byte>(0xE2E26B, 0xEB); /* Sonic::Player::CPlayerSpeedPosturePluginAisacGhz */
+WriteProtected<byte>(0xE2E409, 0xEB); /* Sonic::Player::CPlayerSpeedPosturePluginAisac */
+
+// Patch "Disable Boost Sounds"
+WriteProtected<int>(0x1117C66, -1);
+WriteProtected<int>(0x1117CEB, -1);
+WriteProtected<int>(0x1117D09, -1);
+WriteProtected<int>(0x1117D27, -1);
+WriteProtected<int>(0xDFAC3E, -1);
+
+// Patch "Disable Slide Particles"
+WriteProtected<byte>(0x15E91B4, 0x00);
+WriteProtected<byte>(0x15E91CC, 0x00);
+
+// Patch "Disable Slide Sounds"
+WriteProtected<int>(0x11D722C, -1);
+WriteProtected<int>(0x123DDD7, -1);
+
+// Patch "Disable Jump Sounds"
+WriteProtected<int>(0xDF2B5A, -1);
+WriteProtected<int>(0xE42E43, -1);
+WriteProtected<int>(0xE45C88, -1);
+WriteProtected<int>(0xE45D0F, -1);
+WriteProtected<int>(0xE57E4E, -1);
+WriteProtected<int>(0xE6262D, -1);
+WriteProtected<int>(0x119E92B, -1);
+WriteProtected<int>(0x11D7B42, -1);
+WriteProtected<int>(0xE42E8C, -1);
+WriteProtected<int>(0x11BCC7E, -1);
+
+// Patch "Disable Ground Sounds"
+WriteProtected<byte>(0xDFD420, 0xB8, 0xFF, 0xFF, 0xFF, 0xFF, 0xC2, 0x04, 0x00);
+WriteProtected<byte>(0xDC3400, 0xB8, 0xFF, 0xFF, 0xFF, 0xFF, 0xC2, 0x04, 0x00);
+
+// Patch "Disable Drift"
+WriteProtected<byte>(0xDFF622, 0xEB);
+WriteProtected<byte>(0xDFF821, 0x90, 0xE9);
+
+// Patch "Disable Homing Attack" by "Sajid"
+WriteProtected<float>(0x1704800, 0);
+WriteNop(0xDFFE41, 2);
+WriteProtected<byte>(0xDFFE4F, 0x90, 0xE9);
+WriteProtected<byte>(0xDC50DF, 0x90, 0xE9);
+
+// Patch "Immediately Stand Up When Taking Damage"
+WriteNop(0x123F08B, 2); 
+WriteNop(0x123F07C, 2); 
+WriteNop(0x123F0B1, 2); 
+WriteNop(0x1252653, 2); 
+WriteNop(0x1252662, 2); 
+WriteNop(0x1252688, 2); 
+
+// Patch "Disable Stomping"
+WriteProtected<byte>(0xDFDD7B, 0xEB);
+
+// Patch "Disable Quick Step"
+WriteNop(0xDFE1C4, 2);
+WriteNop(0xDFE1D2, 2);
+
+// Patch "Disable Boost"
+WriteNop(0xDB06F9, 2);
+WriteNop(0xDFDF31, 2);
+WriteNop(0xDFF1DB, 2);
+WriteNop(0xDFF266, 2);
+WriteProtected<byte>(0x111784E, 0x90, 0xE9);
+WriteProtected<byte>(0x1118CF9, 0x90, 0xE9);
+WriteProtected<byte>(0x111D80C, 0xEB);
+WriteProtected<byte>(0xDB0707, 0xEB);
+WriteProtected<byte>(0xDFDF3F, 0x90, 0xE9);
+WriteProtected<byte>(0xDFF1E9, 0x90, 0xE9);
+WriteProtected<byte>(0xE3D97A, 0x90, 0xE9);
+WriteProtected<byte>(0xE47776, 0x90, 0xE9);
+
+// SubsetInit
+// WriteProtected<byte>(0x15B1254, 0x20);
+
+// Patch "Disable Spin"
+WriteProtected<byte>(0xDC28E0, 0x90, 0xE9);
+
+// Patch "Disable Spin Sounds"
+WriteProtected<int>(0x11BB4C4, -1);
+WriteProtected<int>(0x11D3918, -1);
+WriteProtected<int>(0x11D411C, -1);
+WriteProtected<int>(0x11BB4B3, -1);
+WriteProtected<int>(0xDB94BE, -1);
+WriteProtected<int>(0xDB95E7, -1);
+WriteProtected<int>(0x11A0802, -1);
+WriteProtected<int>(0x11D3E8F, -1);
+WriteProtected<int>(0x1250824, -1);
+WriteProtected<int>(0x1250AF6, -1);
+WriteProtected<int>(0x1250D58, -1);
+
+// Patch "Disable Classic Effects"
+WriteProtected<byte>(0x15DD1E0, 0x00);	// ef_ch_snc_yh1_spindash1
+WriteProtected<byte>(0x15DD1F8, 0x00);	// ef_ch_snc_yh1_spinscharge1
+WriteProtected<byte>(0x15DD214, 0x00);	// ef_ch_snc_yh1_spinscharge2
+WriteProtected<byte>(0x15DD230, 0x00);	// ef_ch_snc_yh1_spinscharge3
+WriteProtected<byte>(0x15DD24C, 0x00);	// ef_ch_snc_yh1_spinscharge4
+WriteProtected<byte>(0x16C0F9C, 0x00);	// ef_ch_snc_yh1_spinscharge3
+WriteProtected<byte>(0xDC2200, 0xC2, 0x04, 0x00);
+
+// ef_ch_snc_yh1_sprun1
+WriteProtected<byte>(0xDC0A90, 0xC3);
+WriteProtected<byte>(0xDC1C00, 0xC3);
+
+// Patch "Disable Spin Collision"
+WriteProtected<byte>(0x11BCC4A, 0x83, 0xC4, 0x04, 0x90, 0x90);
+WriteProtected<byte>(0x11BCBB7, 0x83, 0xC4, 0x04, 0x90, 0x90);
+WriteProtected<byte>(0x1114E5F, 0x83, 0xC4, 0x04, 0x90, 0x90);
+WriteProtected<byte>(0x1114C71, 0x83, 0xC4, 0x04, 0x90, 0x90);
+WriteProtected<byte>(0x1114F9A, 0x83, 0xC4, 0x04, 0x90, 0x90);
+WriteProtected<byte>(0x1114F19, 0x83, 0xC4, 0x04, 0x90, 0x90);
+
+// Patch "No Trick Rainbow Rings" by "Hyper"
+WriteNop(0x115A6AF, 2);
+
+// Patch "No Trick Jump Boards"
+WriteProtected<byte>(0x1014866, 0xA);
+
+// Patch "Disable Spin Dash on Dash Panels" by "Hyper"
+WriteProtected<byte>(0xE0AC1C, 0xE9, 0x27, 0x01, 0x00, 0x00);
+WriteProtected<byte>(0xE0C734, 0xE9, 0x27, 0x01, 0x00, 0x00);
+
+// Patch "Disable Board"
+WriteProtected<byte>(0xD947CC, 0xEB);
+WriteProtected<byte>(0xE6B750, 0xC2, 0x04, 0x00);
+
+// Patch "Disable Lives" by "Hyper"
+WriteNop(0xD59A67, 6);
+WriteNop(0xE68562, 5);
+WriteProtected<byte>(0x1098C82, 0xEB);
+WriteProtected<byte>(0x109B1A4, 0xE9, 0xDC, 0x02, 0x00, 0x00);
+WriteProtected<byte>(0x11CCA82, 0xE9, 0xB1, 0x00, 0x00, 0x00);
+WriteProtected<byte>(0x166463C, 0x00);
+WriteProtected<byte>(0x167DDE4, 0x00);
+
+// Patch "Restore Right Stick Camera Controls" by "Skyth & Ahremic"
+//=====//
+// Pan //
+//=====//
+static double PanSmoothingRate = 0.65;
+fixed (double* pPanSmoothingRate = &PanSmoothingRate)
+	WriteProtected(0x10E723E, (uint)pPanSmoothingRate);
+
+// X
+WriteAsmHook(@"
+movss xmm0, ds:0x1E77B74
+shufps xmm0, xmm0, 0
+cvtps2pd xmm0, xmm0
+movapd xmm3, xmm0
+movsd xmm0, ds:0x1464F30
+subsd xmm3, xmm2
+", 0x10E7232, HookBehavior.Replace);
+
+// Y
+WriteAsmHook(@"
+movss xmm0, ds:0x1E77B78
+shufps xmm0, xmm0, 0
+cvtps2pd xmm0, xmm0
+movapd xmm4, xmm0
+movsd xmm0, ds:0x1703C98
+cvtps2pd xmm3, xmm1
+", 0x10E7265, HookBehavior.Replace);
+
+//========//
+// Orient //
+//========//
+
+// X
+WriteAsmHook(@"
+movss xmm1, ds:0x1E77B74
+mulss xmm1, ds:0x13E08A4
+shufps xmm1, xmm1, 0
+cvtps2pd xmm3, xmm1
+xorps xmm1, xmm1
+add esp, 8
+", 0x10EE053, HookBehavior.Replace);
+
+// Y
+WriteAsmHook(@"
+movss xmm1, ds:0x1E77B78
+mulss xmm1, ds:0x13E40B8
+xorps xmm1, ds:0x1703930
+shufps xmm1, xmm1, 0
+cvtps2pd xmm0, xmm1
+xorps xmm1, xmm1
+cvtps2pd xmm2, xmm2
+", 0x10EE030, HookBehavior.Replace);
+
+// Patch "All Cameras are Controllable" by "Skyth"
+WriteNop(0x10E7515, 2);
+
+// Patch "Disable Zoom In/Out in Hub World" by "brianuuu"
+WriteProtected<byte>(0xD317A5, 0xEB);
+
+// Patch "Never Receive Boost From Enemies" by "Hyper"
+WriteProtected<byte>(0x112435C, 0xE9, 0xAB, 0x00, 0x00, 0x00);
+WriteNop(0x11246D9, 5);
+
+Code "Codes"
+
+// Code "Disable Motion Blur"
+Write<byte>(0x1A43103, 0)
+
+// Code "Infinite Boost Gauge" by "Zoney"
+Write<float>(GetPointer(0x1E5E2F0, 0x5BC), 500)
+
+// Code "Disable Boost Blur"
+Write<byte>(0x1A43102, 0);
+Write<byte>(0x1AD6198, 0);

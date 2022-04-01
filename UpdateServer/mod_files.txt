@@ -1,0 +1,7 @@
+add disk/bb3/DynamicData.ar.00
+add disk/bb3/DynamicData.arl
+add disk/bb3/VertexColorFadeToInvAlpha.ar.00
+add disk/bb3/VertexColorFadeToInvAlpha.arl
+add GenerationsSM64.dll
+add GenerationsSM64.hmm
+add mod.ini
