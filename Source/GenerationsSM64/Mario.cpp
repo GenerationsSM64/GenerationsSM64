@@ -139,19 +139,22 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	// Allow Sonic to be in control for a little longer.
 	else if (controlSonicTimer > 0.0f)
 	{
+		// If Sonic is pointing down after losing control (eg. in the middle of a loop),
+		// let him control for a little longer, otherwise Mario is going to clip through the ceiling.
+		if (playerContext->m_UpVector.y() <= 0.01f)
+		{
+			controlSonic = true;
+			controlSonicTimer = max(0.25f, controlSonicTimer);
+		}
+
 		// Abort if grounded flag doesn't match.
-		if (playerContext->m_Grounded != controlSonicGrounded)
+		else if (playerContext->m_Grounded != controlSonicGrounded)
 			controlSonicTimer = 0.0f;
 
 		else
 		{
 			controlSonic = true;
 			controlSonicTimer -= updateInfo.DeltaTime;
-
-			// If Sonic is pointing down after losing control (eg. in the middle of a loop),
-			// let him control for a little longer, otherwise Mario is going to clip through the ceiling.
-			if (playerContext->m_UpVector.y() <= 0.01f)
-				controlSonicTimer = max(0.25f, controlSonicTimer);
 		}
 	}
 
@@ -274,7 +277,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		if (animName == "Walk")
 			action = ACT_WALKING;
 
-		else if (stateName == "Goal")
+		else if (animName == "Stand" || stateName == "Goal" || animName == "StartEventDash" || animName == "StartEventStand")
 			action = ACT_IDLE;
 
 		else if (!playerContext->m_Grounded)
