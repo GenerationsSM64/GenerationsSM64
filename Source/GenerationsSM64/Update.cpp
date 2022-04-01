@@ -1,8 +1,6 @@
 #include "Mod.h"
 
-float audioUpdateTimer;
-
-HOOK(void, __stdcall, AppUpdate, 0xD6BE60, void* a1, float deltaTime)
+HOOK(void, __stdcall, CApplicationUpdateInternal, 0xD6BE60, void* application, float deltaTime)
 {
     size_t target = (size_t)((1.0f / deltaTime) - 5.0f);
     const size_t remnant = target % 30;
@@ -12,6 +10,13 @@ HOOK(void, __stdcall, AppUpdate, 0xD6BE60, void* a1, float deltaTime)
     if (get_interpolation_should_update())
         set_interpolation_interval(max(1, target / 30));
 
+    originalCApplicationUpdateInternal(application, 1.0f / (float)target);
+}
+
+float audioUpdateTimer;
+
+HOOK(void, __fastcall, CApplicationUpdate, 0xE7BED0, void* This, void* Edx, float deltaTime, bool flag)
+{
     audioUpdateTimer += deltaTime;
     if (audioUpdateTimer >= (1.0f / 30.0f))
     {
@@ -19,10 +24,11 @@ HOOK(void, __stdcall, AppUpdate, 0xD6BE60, void* a1, float deltaTime)
         audioUpdateTimer = 0.0f;
     }
 
-    originalAppUpdate(a1, 1.0f / (float)target);
+    originalCApplicationUpdate(This, Edx, deltaTime, flag);
 }
 
 void initUpdate()
 {
-    INSTALL_HOOK(AppUpdate);
+    INSTALL_HOOK(CApplicationUpdateInternal);
+    INSTALL_HOOK(CApplicationUpdate);
 }
