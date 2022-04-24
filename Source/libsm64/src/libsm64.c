@@ -402,9 +402,9 @@ uint8_t sm64_mario_is_invulnerable(void) {
 }
 
 void sm64_mario_set_action(uint32_t action) {
-    if (!(gMarioState->action & ACT_FLAG_INVULNERABLE) && gMarioState->action != ACT_FLYING
-        && gMarioState->action != action
+    if (gMarioState->action != ACT_FLYING && gMarioState->action != action
         && (action == ACT_WALKING || action == ACT_IDLE
+            || (gMarioState->action & ACT_FLAG_INVULNERABLE) != 0
             || (gMarioState->action & ACT_FLAG_AIR) != (action & ACT_FLAG_AIR))) {
         set_mario_action(gMarioState, action, 0);
     }
