@@ -14,38 +14,47 @@ WriteProtected<byte>(0x15F99F8, 0x00); /* ef_ch_sps_yh1_boost1 */
 WriteProtected<byte>(0x15F9A10, 0x00); /* ef_ch_sps_yh1_boost2 */
 WriteProtected<byte>(0x164330C, 0x00); /* ef_st_ssh_yh1_bobsled_boost */
 
-// Patch "Disable Character Action Voices" by "Hyper"
-WriteProtected<uint>(0xDF0B96, 0xFFFFFF);  /* 3002_action01 (used for Unleashed jump selector) */
-WriteProtected<uint>(0xDF0C08, 0xFFFFFF);  /* 3002_action01 (used for Unleashed jump selector) */
-WriteProtected<uint>(0xDFC993, 0xFFFFFF);  /* 3002_action01 (used for bouncing off physics objects) */
-WriteProtected<uint>(0xE4B684, 0xFFFFFF);  /* 3002_action01 (used for tricks) */
-WriteProtected<uint>(0xE4B8E0, 0xFFFFFF);  /* 3002_action01 (used for trick finish) */
-WriteProtected<uint>(0xE57E6F, 0xFFFFFF);  /* 3002_action01 (used for jumping) */
-WriteProtected<uint>(0x11D7B8C, 0xFFFFFF); /* 3002_action01 (used for grinding) */
-WriteProtected<uint>(0x123B475, 0xFFFFFF); /* 3002_action01 (used for cannons) */
-WriteProtected<uint>(0x1252740, 0xFFFFFF); /* 3002_action01 (used for squat kick) */
-WriteProtected<uint>(0x1117EF4, 0xFFFFFF); /* 3002_stumble */
-WriteProtected<uint>(0xE0248C, 0xFFFFFF);  /* 3002_damage01 */
-WriteProtected<uint>(0xE02496, 0xFFFFFF);  /* 3002_damage02 */
-WriteProtected<uint>(0xE024A0, 0xFFFFFF);  /* 3002_damage03 */
-WriteProtected<uint>(0xE024AA, 0xFFFFFF);  /* 3002_damage04 */
-WriteProtected<uint>(0xDF0B63, 0xFFFFFF);  /* 3002_damage05 (used for Unleashed jump selector) */
-WriteProtected<uint>(0xE4466E, 0xFFFFFF);  /* 3002_strain (used for pushing) */
-WriteProtected<uint>(0xE023E3, 0xFFFFFF);  /* 3002_dead (used for dying from enemies) */
-WriteProtected<uint>(0xE55D3D, 0xFFFFFF);  /* 3002_dead (used for dying from falling) */
-WriteProtected<uint>(0x1117CEB, 0xFFFFFF); /* 3002_action03 (used for boost) */
-WriteProtected<uint>(0x1254E04, 0xFFFFFF); /* 3002_action03 (used for stomping) */
-WriteProtected<uint>(0xDF3710, 0xFFFFFF);  /* 3002_action04 (used for drift) */
-WriteProtected<uint>(0x1117D09, 0xFFFFFF); /* 3002_action04 (used for boost) */
-WriteProtected<uint>(0x11184E4, 0xFFFFFF); /* 3002_action04 (used for homing success) */
-WriteProtected<uint>(0x1118512, 0xFFFFFF); /* 3002_action03 (used for homing success) */
-WriteProtected<uint>(0x1119B1F, 0xFFFFFF); /* 3002_action04 (used for board drift) */
-WriteProtected<uint>(0xE3DADD, 0xFFFFFF);  /* 3002_success01 (used for blast off) */
-WriteProtected<uint>(0xE462AA, 0xFFFFFF);  /* 3002_success01 (used for pulleys) */
-WriteProtected<uint>(0x1117D27, 0xFFFFFF); /* 3002_action05 (used for boost) */
-WriteProtected<uint>(0x1231971, 0xFFFFFF); /* 3002_action05 (used for light dash) */
-WriteProtected<uint>(0xDF0B63, 0xFFFFFF);  /* 3002_damage06 */
-WriteProtected<uint>(0x11D72DC, 0xFFFFFF); /* 3002_action06 */
+// Patch "Disable Character Action Voices"
+WriteProtected<int>(0x00DF0B63, -1);
+WriteProtected<int>(0x00DF0B96, -1);
+WriteProtected<int>(0x00DF0C08, -1);
+WriteProtected<int>(0x00DF3710, -1);
+WriteProtected<int>(0x00DFC993, -1);
+WriteProtected<int>(0x00E023E3, -1);
+WriteProtected<int>(0x00E3DADD, -1);
+WriteProtected<int>(0x00E421E7, -1);
+WriteProtected<int>(0x00E4466E, -1);
+WriteProtected<int>(0x00E44DAD, -1);
+WriteProtected<int>(0x00E462AA, -1);
+WriteProtected<int>(0x00E4B684, -1);
+WriteProtected<int>(0x00E4B8E0, -1);
+WriteProtected<int>(0x00E55C07, -1);
+WriteProtected<int>(0x00E55D3D, -1);
+WriteProtected<int>(0x00E57E6F, -1);
+WriteProtected<int>(0x00E5CBF9, -1);
+WriteProtected<int>(0x0109DDFE, -1);
+WriteProtected<int>(0x0109DF04, -1);
+WriteProtected<int>(0x01117CEB, -1);
+WriteProtected<int>(0x01117D09, -1);
+WriteProtected<int>(0x01117D27, -1);
+WriteProtected<int>(0x01117EF4, -1);
+WriteProtected<int>(0x011184E4, -1);
+WriteProtected<int>(0x01118512, -1);
+WriteProtected<int>(0x01119B1F, -1);
+WriteProtected<int>(0x0111BCEF, -1);
+WriteProtected<int>(0x0111BD0D, -1);
+WriteProtected<int>(0x0111BD2B, -1);
+WriteProtected<int>(0x0111C370, -1);
+WriteProtected<int>(0x011D72DC, -1);
+WriteProtected<int>(0x011D7B8C, -1);
+WriteProtected<int>(0x011FE77C, -1);
+WriteProtected<int>(0x01203E9D, -1);
+WriteProtected<int>(0x01231971, -1);
+WriteProtected<int>(0x01232B73, -1);
+WriteProtected<int>(0x012344E3, -1);
+WriteProtected<int>(0x0123B475, -1);
+WriteProtected<int>(0x01252740, -1);
+WriteProtected<int>(0x01254E04, -1);
 
 // Patch "Disable Blue Trail" by "Hyper"
 WriteProtected<byte>(0xE5FDE5, 0xE9, 0x19, 0x01, 0x00, 0x00);
@@ -81,6 +90,7 @@ WriteProtected<int>(0x1117C66, -1);
 WriteProtected<int>(0x1117CEB, -1);
 WriteProtected<int>(0x1117D09, -1);
 WriteProtected<int>(0x1117D27, -1);
+WriteProtected<int>(0x111BC5A, -1);
 WriteProtected<int>(0xDFAC3E, -1);
 
 // Patch "Disable Slide Particles"
