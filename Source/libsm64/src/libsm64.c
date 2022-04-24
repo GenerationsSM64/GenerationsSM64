@@ -337,6 +337,10 @@ void sm64_mario_set_animation_lock(uint32_t locked) {
 }
 
 void sm64_mario_toggle_wing_cap(void) {
+    if (gMarioState->action & ACT_FLAG_INTANGIBLE) {
+        return;
+    }
+
     if (gMarioState->capTimer > 10) {
         gMarioState->capTimer = 10;
     } else if ((gMarioState->action & ACT_FLAG_IDLE) || gMarioState->action == ACT_WALKING) {
