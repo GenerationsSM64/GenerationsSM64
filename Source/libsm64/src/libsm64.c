@@ -405,6 +405,9 @@ void sm64_mario_set_action(uint32_t action) {
     if (gMarioState->action != ACT_FLYING && gMarioState->action != action
         && (action == ACT_WALKING || action == ACT_IDLE
             || (gMarioState->action & ACT_FLAG_INVULNERABLE) != 0
+            || ((gMarioState->action & ACT_FLAG_AIR) != 0
+                && (gMarioState->action & ACT_FLAG_CONTROL_JUMP_HEIGHT) == 0
+                && (gMarioState->action & ACT_FLAG_ATTACKING) == 0)
             || (gMarioState->action & ACT_FLAG_AIR) != (action & ACT_FLAG_AIR))) {
         set_mario_action(gMarioState, action, 0);
     }
