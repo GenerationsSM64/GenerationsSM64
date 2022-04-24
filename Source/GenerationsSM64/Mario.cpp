@@ -194,7 +194,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		sm64_mario_set_face_angle(0, atan2(direction.x(), direction.z()), 0);
 
-		overrideMatrix = Eigen::Translation3f(position * 100.0f) * rotation;
+		overrideMatrix = 
+			(Eigen::Translation3f(position * 100.0f) * rotation) * 
+			(Eigen::Translation3f(playerContext->m_spModelMatrixNode->m_Matrix.translation() * 100.0f) * playerContext->m_spModelMatrixNode->m_Matrix.rotation());
+
 		useOverrideMatrix = true;
 
 		const auto& animName = playerContext->GetCurrentAnimationName();
