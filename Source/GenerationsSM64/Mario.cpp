@@ -182,8 +182,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		if (playerContext->m_UpVector.y() <= 0.01f)
 			offsetedPosition += playerContext->m_UpVector * 0.6f;
 
+		const auto localVelocity = playerContext->m_spMatrixNode->m_Transform.m_Rotation.inverse() * velocity;
+
 		sm64_mario_set_position(offsetedPosition.x() * 100.0f, offsetedPosition.y() * 100.0f, offsetedPosition.z() * 100.0f, TRUE);
-		sm64_mario_set_velocity(velocity.x(), velocity.y(), velocity.z(), sqrt(velocity.x() * velocity.x() + velocity.z() * velocity.z()));
+		sm64_mario_set_velocity(velocity.x(), velocity.y(), velocity.z(), sqrt(localVelocity.x() * localVelocity.x() + localVelocity.z() * localVelocity.z()));
 
 		hh::math::CVector direction = playerContext->m_Velocity;
 		direction.y() = 0.0f;
