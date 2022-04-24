@@ -461,6 +461,10 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	player->SendMessage(player->m_ActorID, boost::make_shared<Sonic::Message::MsgSetVisible>(false));
 
+	if (padState.IsDown(Sonic::eKeyState_LeftBumper) && padState.IsDown(Sonic::eKeyState_RightBumper) &&
+		padState.IsDown(Sonic::eKeyState_LeftTrigger) && padState.IsDown(Sonic::eKeyState_RightTrigger))
+		player->SendMessage(player->m_ActorID, boost::make_shared<Sonic::Message::MsgDead>(false));
+
 	// Update model data with the new buffers.
 	// TODO: Map structures in BlueBlur to make this look cleaner.
 	void* meshGroupData = **(void***)((char*)modelData.get() + 24);
