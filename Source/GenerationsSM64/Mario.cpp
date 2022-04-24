@@ -112,12 +112,13 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	const bool invulnerable = sm64_mario_is_invulnerable();
 
-	bool ignoreInput = 
+	bool ignoreInput =
 		(!invulnerable && playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl]) ||
 		stateName == "HangOn" ||
 		stateName == "LightSpeedDash" ||
 		stateName == "TramRiding" ||
 		stateName == "Stepping" ||
+		strstr(stateName.c_str(), "Diving") ||
 		strstr(stateName.c_str(), "ExternalControl") ||
 		strstr(stateName.c_str(), "Grind") ||
 		strstr(stateName.c_str(), "Homing") ||
@@ -259,6 +260,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 			animOffset = -0.25f;
 		}
+
+		else if (strstr(stateName.c_str(), "Diving"))
+			animId = MARIO_ANIM_AIRBORNE_ON_STOMACH;
 
 		if (animId >= 0)
 		{
