@@ -21,6 +21,7 @@ bool controlSonicGrounded;
 Sonic::CRigidBody* prevRigidBody;
 hh::math::CMatrix prevRigidBodyMatrixInverse;
 bool fireDamage;
+hh::math::CVector prevPosition;
 
 void deleteMario()
 {
@@ -182,16 +183,15 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 			offsetedPosition += playerContext->m_UpVector * 0.6f;
 
 		sm64_mario_set_position(offsetedPosition.x() * 100.0f, offsetedPosition.y() * 100.0f, offsetedPosition.z() * 100.0f, TRUE);
-		sm64_mario_set_velocity(velocity.x(), velocity.y(), velocity.z(), (rotation * hh::math::CVector::UnitZ()).dot(velocity));
+		sm64_mario_set_velocity(velocity.x(), velocity.y(), velocity.z(), abs((rotation * hh::math::CVector::UnitZ()).dot(velocity)));
 
-		hh::math::CVector direction;
-		if (playerContext->m_HorizontalVelocity.squaredNorm() > 0.001f)
-			direction = playerContext->m_HorizontalVelocity.normalized();
-		else
-			direction = (rotation * hh::math::CVector::UnitZ()).normalized();
+		hh::math::CVector direction = position - prevPosition;
+		direction.y() = 0.0f;
 
-		const float yaw = atan2(direction.x(), direction.z());
-		sm64_mario_set_face_angle(asin(-direction.y()), yaw, 0);
+		if (direction.squaredNorm() < 0.00001f)
+			direction = rotation * hh::math::CVector::UnitZ();
+
+		sm64_mario_set_face_angle(0, atan2(direction.x(), direction.z()), 0);
 
 		overrideMatrix = Eigen::Translation3f(position * 100.0f) * rotation;
 		useOverrideMatrix = true;
@@ -467,7 +467,9 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	if (!playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Damaging] && *((bool*)playerContext + 0x112C))
 		scale = 0.0f;
 
-	renderable->m_spInstanceInfo->m_Transform *= Eigen::Scaling(scale); 
+	renderable->m_spInstanceInfo->m_Transform *= Eigen::Scaling(scale);
+
+	prevPosition = playerContext->m_spMatrixNode->m_Transform.m_Position;
 }
 
 HOOK(void, __fastcall, CGameplayFlowStageOnExit, 0xD05360, void* This)

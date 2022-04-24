@@ -283,6 +283,10 @@ void sm64_mario_set_face_angle(float x, float y, float z) {
     gMarioState->faceAngle[0] = sx < -32768 ? -32768 : sx > 32767 ? 32767 : sx;
     gMarioState->faceAngle[1] = sy < -32768 ? -32768 : sy > 32767 ? 32767 : sy;
     gMarioState->faceAngle[2] = sz < -32768 ? -32768 : sz > 32767 ? 32767 : sz;
+
+    vec3s_copy(gMarioState->prevFaceAngle, gMarioState->faceAngle);
+    vec3s_copy(gMarioObject->header.gfx.angle, gMarioState->faceAngle);
+    vec3s_copy(gMarioObject->header.gfx.prevAngle, gMarioState->faceAngle);
 }
 
 void sm64_mario_set_animation(int32_t animationID) {
