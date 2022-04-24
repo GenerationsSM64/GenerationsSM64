@@ -20,6 +20,11 @@ HOOK(void, __fastcall, CApplicationUpdate, 0xE7BED0, void* This, void* Edx, floa
     audioUpdateTimer += deltaTime;
     if (audioUpdateTimer >= (1.0f / 30.0f))
     {
+        if (char* soundModuleManager = *(char**)0x1E77290)
+            gGlobalVolume = *(float*)(soundModuleManager + 0x3C);
+        else
+            gGlobalVolume = 0.63f;
+
         audio_signal_game_loop_tick();
         audioUpdateTimer = 0.0f;
     }
