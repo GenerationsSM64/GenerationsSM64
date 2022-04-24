@@ -35,7 +35,13 @@ HOOK(bool, __fastcall, LoadAudioConfig, 0xA5CAF0, struct AudioConfig* audioConfi
     deviceConfig.dataCallback = audioCallback;
     deviceConfig.playback.format = ma_format_s16;
     deviceConfig.playback.channels = 2;
-    deviceConfig.playback.pDeviceID = (const ma_device_id*)audioConfig;
+
+    bool valid = false;
+    for (size_t i = 0; i < 16; i++)
+        valid |= ((uint8_t*)audioConfig)[i] != 0xFF;
+
+    if (valid)
+        deviceConfig.playback.pDeviceID = (const ma_device_id*)audioConfig;
 
     ma_context_init(backends, _countof(backends), nullptr, &context);
     ma_device_init(&context, &deviceConfig, &device);
