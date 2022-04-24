@@ -87,7 +87,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 	// Create Mario if we haven't yet, or if Sonic is dead. This needs to be delayed
 	// due to the ray cast function randomly crashing on loading.
-	const bool restarting = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_PrepreRestart];
+	const bool restarting = playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_Restarting];
 
 	if (restarting && mario >= 0)
 	{
