@@ -286,6 +286,10 @@ WriteProtected<byte>(0xD317A5, 0xEB);
 WriteProtected<byte>(0x112435C, 0xE9, 0xAB, 0x00, 0x00, 0x00);
 WriteNop(0x11246D9, 5);
 
+// Patch "Freeze Challenge Timer" by "Muzzarino"
+WriteNop(0x124EFC5, 8)
+WriteNop(0xD0E7D5, 2)
+
 Code "Codes"
 
 // Code "Disable Motion Blur"
