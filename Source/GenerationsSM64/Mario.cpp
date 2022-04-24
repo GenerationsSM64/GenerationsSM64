@@ -21,7 +21,6 @@ bool controlSonicGrounded;
 Sonic::CRigidBody* prevRigidBody;
 hh::math::CMatrix prevRigidBodyMatrixInverse;
 bool fireDamage;
-hh::math::CVector prevPosition;
 
 void deleteMario()
 {
@@ -186,7 +185,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		sm64_mario_set_position(offsetedPosition.x() * 100.0f, offsetedPosition.y() * 100.0f, offsetedPosition.z() * 100.0f, TRUE);
 		sm64_mario_set_velocity(velocity.x(), velocity.y(), velocity.z(), abs((rotation * hh::math::CVector::UnitZ()).dot(velocity)));
 
-		hh::math::CVector direction = position - prevPosition;
+		hh::math::CVector direction = playerContext->m_Velocity;
 		direction.y() = 0.0f;
 
 		if (direction.squaredNorm() < 0.00001f)
@@ -475,8 +474,6 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		scale = 0.0f;
 
 	renderable->m_spInstanceInfo->m_Transform *= Eigen::Scaling(scale);
-
-	prevPosition = playerContext->m_spMatrixNode->m_Transform.m_Position;
 }
 
 HOOK(void, __fastcall, CGameplayFlowStageOnExit, 0xD05360, void* This)
