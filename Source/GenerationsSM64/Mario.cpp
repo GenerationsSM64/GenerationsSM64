@@ -203,7 +203,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		int animId = -1;
 
-		if (animName == "JumpBall" || animName == "SpinAttack")
+		if (animName == "JumpBall" || animName == "SpinAttack" || playerContext->m_IsBallModel)
 		{
 			animId = MARIO_ANIM_FORWARD_SPINNING;
 
