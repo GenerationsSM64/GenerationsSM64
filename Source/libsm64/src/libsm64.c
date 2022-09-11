@@ -441,7 +441,7 @@ void sm64_mario_squish(void) {
 
 uint8_t sm64_mario_can_bounce_off_enemy(void) {
     return (gMarioState->action & ACT_FLAG_INVULNERABLE) == 0
-           && (gMarioState->action & ACT_FLAG_AIR) != 0 && gMarioState->vel[1] < 0.0f;
+           && (gMarioState->action & ACT_FLAG_AIR) != 0 && gMarioState->vel[1] < -0.01f;
 }
 
 void sm64_mario_bounce_off_enemy(void) {

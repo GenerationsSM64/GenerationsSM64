@@ -82,7 +82,6 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalIncludeDirectories>..\..\Dependencies\DllMods\Dependencies;..\..\Dependencies\DllMods\Dependencies\Detours\include;..\..\Dependencies\DllMods\Dependencies\Loaders;..\..\Dependencies\DllMods\Include\BlueBlur;..\libsm64\src;..\..\Dependencies\DllMods\Dependencies\xxHash;..\..\Dependencies\miniaudio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>Pch.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>

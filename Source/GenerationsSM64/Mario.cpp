@@ -633,15 +633,33 @@ HOOK(void, __fastcall, CPlayerSpeedStatePluginLookAtLeave, 0xE3F3B0, void* This)
 	originalCPlayerSpeedStatePluginLookAtLeave(This);
 }
 
-bool ProcMsgDamage(Sonic::Player::CPlayerSpeed* This, hh::fnd::Message& in_rMsg)
+namespace Sonic
+{
+	class CEnemyBase : public CObjectBase {};
+}
+
+Sonic::CEnemyBase* getEnemyBase(size_t in_ActorID)
+{
+	const auto messageManager = Sonic::CApplicationDocument::GetInstance()->m_pMember->m_pMessageManager;
+	hh::base::CHolderBase holder(reinterpret_cast<Hedgehog::Base::CSynchronizedObject*>(messageManager));
+
+	const auto map = (hh::map<size_t, hh::fnd::CMessageActor*>*)((char*)messageManager + 4);
+	const auto& pair = map->find(in_ActorID);
+
+	if (pair == map->end())
+		return nullptr;
+
+	return dynamic_cast<Sonic::CEnemyBase*>(pair->second);
+}
+
+bool procMsgDamage(Sonic::Player::CPlayerSpeed* This, hh::fnd::Message& in_rMsg)
 {
 	if (mario < 0 || !sm64_mario_can_bounce_off_enemy())
 		return false;
 
-	hh::math::CVector position;
-	This->SendMessageImm(in_rMsg.m_SenderActorID, boost::make_shared<Sonic::Message::MsgGetPosition>(position));
+	const auto enemy = getEnemyBase(in_rMsg.m_SenderActorID);
 
-	if (position.y() > (state.position[1] * 0.01f))
+	if (!enemy || enemy->m_spMatrixNodeTransform->m_Transform.m_Position.y() > (state.interpolatedPosition[1] * 0.01f))
 		return false;
 
 	*(size_t*)((char*)&in_rMsg + 0x10) = *(size_t*)0x1E0BE28; // Damage type
@@ -656,13 +674,13 @@ bool ProcMsgDamage(Sonic::Player::CPlayerSpeed* This, hh::fnd::Message& in_rMsg)
 
 HOOK(void, __fastcall, CSonicClassicProcMsgDamage, 0xDEA340, Sonic::Player::CSonic* This, void* _, hh::fnd::Message& in_rMsg)
 {
-	if (!ProcMsgDamage(This, in_rMsg))
+	if (!procMsgDamage(This, in_rMsg))
 		originalCSonicClassicProcMsgDamage(This, _, in_rMsg);
 }
 
 HOOK(void, __fastcall, CSonicProcMsgDamage, 0xE27890, Sonic::Player::CSonic* This, void* _, hh::fnd::Message& in_rMsg)
 {
-	if (!ProcMsgDamage(This, in_rMsg))
+	if (!procMsgDamage(This, in_rMsg))
 		originalCSonicProcMsgDamage(This, _, in_rMsg);
 }
 
