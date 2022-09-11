@@ -39,16 +39,15 @@ void computeMarioPositionAndRotation(hh::math::CVector& position, hh::math::CQua
 	rotation = Eigen::AngleAxisf(state.interpolatedFaceAngle, Eigen::Vector3f::UnitY());
 }
 
-void updateMarioMesh(void* meshData, const SM64MarioGeometryBuffer& buffer)
+void updateMarioMesh(hh::mr::CMeshData& meshData, const SM64MarioGeometryBuffer& buffer)
 {
 	if (buffer.numTrianglesUsed == 0)
 	{
 		// Set index count to 0.
-		*(size_t*)((char*)meshData + 12) = 0;
+		meshData.m_IndexNum = 0;
 		return;
 	}
 
-	auto vertexBuffer = *(DX_PATCH::IDirect3DVertexBuffer9**)((char*)meshData + 44);
 	const size_t vertexCount = (size_t)buffer.numTrianglesUsed * 3;
 
 	struct Vertex
@@ -60,7 +59,7 @@ void updateMarioMesh(void* meshData, const SM64MarioGeometryBuffer& buffer)
 	};
 
 	Vertex* vertices;
-	vertexBuffer->Lock(0, vertexCount * sizeof(Vertex), (void**)&vertices, 0);
+	meshData.m_pD3DVertexBuffer->Lock(0, vertexCount * sizeof(Vertex), (void**)&vertices, 0);
 
 	for (size_t i = 0; i < vertexCount; i++)
 	{
@@ -73,12 +72,12 @@ void updateMarioMesh(void* meshData, const SM64MarioGeometryBuffer& buffer)
 		memcpy(vertices[i].uv, &buffer.uv[i * 2], sizeof(vertices[i].uv));
 	}
 
-	vertexBuffer->Unlock();
+	meshData.m_pD3DVertexBuffer->Unlock();
 
 	// Set index count.
 	// D3D9 has 6 indices per triangle, last 3 being the degenerate triangle.
 	// D3D11 has 4 indices per triangle, last one being the restart index.
-	*(size_t*)((char*)meshData + 12) = useRestartIndices ? vertexCount + buffer.numTrianglesUsed - 1 : vertexCount * 2 - 3;
+	meshData.m_IndexNum = useRestartIndices ? vertexCount + buffer.numTrianglesUsed - 1 : vertexCount * 2 - 3;
 }
 
 void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& updateInfo)
@@ -199,7 +198,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		overrideMatrix = 
 			(Eigen::Translation3f(position * 100.0f) * rotation) * 
-			(Eigen::Translation3f(playerContext->m_spModelMatrixNode->m_Matrix.translation() * 100.0f) * playerContext->m_spModelMatrixNode->m_Matrix.rotation());
+			(Eigen::Translation3f(playerContext->m_spModelMatrixNode->m_LocalMatrix.translation() * 100.0f) * playerContext->m_spModelMatrixNode->m_LocalMatrix.rotation());
 
 		useOverrideMatrix = true;
 
@@ -458,9 +457,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		playerContext->m_HorizontalRotation = rotation;
 		playerContext->m_VerticalRotation.setIdentity();
 
-		playerContext->m_Velocity = velocity;
-		playerContext->m_VelocityDirty = true;
-		(&playerContext->m_VelocityDirty)[1] = false;
+		playerContext->SetVelocity(velocity);
 	}
 
 	player->SendMessage(player->m_ActorID, boost::make_shared<Sonic::Message::MsgSetVisible>(false));
@@ -470,10 +467,11 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		player->SendMessage(player->m_ActorID, boost::make_shared<Sonic::Message::MsgDead>(false));
 
 	// Update model data with the new buffers.
-	// TODO: Map structures in BlueBlur to make this look cleaner.
-	void* meshGroupData = **(void***)((char*)modelData.get() + 24);
-	updateMarioMesh(**(void***)((char*)meshGroupData + 16), buffers.opaque);
-	updateMarioMesh(**(void***)((char*)meshGroupData + 48), buffers.punchThrough);
+	if (modelData->IsMadeAll())
+	{
+		updateMarioMesh(*modelData->m_NodeGroupModels[0]->m_OpaqueMeshes[0], buffers.opaque);
+		updateMarioMesh(*modelData->m_NodeGroupModels[0]->m_PunchThroughMeshes[0], buffers.punchThrough);
+	}
 
 	renderable->m_spInstanceInfo->m_Transform = Eigen::Translation3f(Eigen::Vector3f(
 		state.interpolatedGfxPosition[0] * 0.01f, state.interpolatedGfxPosition[1] * 0.01f + animOffset, state.interpolatedGfxPosition[2] * 0.01f));
@@ -510,8 +508,7 @@ HOOK(void, __fastcall, CPlayerAddCallback, 0xE799F0, Sonic::Player::CPlayer* Thi
 	hh::mr::CMirageDatabaseWrapper mirageDatabaseWrapper(spDatabase.get());
 
 	// Remake the "Dynamic.dds" file using the texture generated from the ROM.
-	boost::shared_ptr<hh::mr::CPictureData> spPictureData;
-	mirageDatabaseWrapper.GetPictureData(spPictureData, "Dynamic", 0);
+	const auto spPictureData = mirageDatabaseWrapper.GetPictureData("Dynamic");
 
 	FUNCTION_PTR(void, __cdecl, makePictureData, 0x743DE0, hh::mr::CPictureData* pPictureData, const uint8_t* pData, size_t length,
 		hh::mr::CRenderingInfrastructure* pRenderingInfrastructure);
@@ -528,7 +525,7 @@ HOOK(void, __fastcall, CPlayerAddCallback, 0xE799F0, Sonic::Player::CPlayer* Thi
 		*(hh::mr::CRenderingInfrastructure**)((char*)Sonic::CApplicationDocument::GetInstance()->m_pMember + 60));
 
 	// Add the dynamic model. The vertex buffers are going to be dynamically updated using the data returned by libsm64.
-	mirageDatabaseWrapper.GetModelData(modelData, "Dynamic", 0);
+	modelData = mirageDatabaseWrapper.GetModelData("Dynamic");
 	This->AddRenderable("Object", renderable = boost::make_shared<hh::mr::CSingleElement>(modelData), true);
 }
 
@@ -636,6 +633,39 @@ HOOK(void, __fastcall, CPlayerSpeedStatePluginLookAtLeave, 0xE3F3B0, void* This)
 	originalCPlayerSpeedStatePluginLookAtLeave(This);
 }
 
+bool ProcMsgDamage(Sonic::Player::CPlayerSpeed* This, hh::fnd::Message& in_rMsg)
+{
+	if (mario < 0 || !sm64_mario_can_bounce_off_enemy())
+		return false;
+
+	hh::math::CVector position;
+	This->SendMessageImm(in_rMsg.m_SenderActorID, boost::make_shared<Sonic::Message::MsgGetPosition>(position));
+
+	if (position.y() > (state.position[1] * 0.01f))
+		return false;
+
+	*(size_t*)((char*)&in_rMsg + 0x10) = *(size_t*)0x1E0BE28; // Damage type
+	*(size_t*)((char*)&in_rMsg + 0x14) = 0;
+	*(size_t*)((char*)&in_rMsg + 0x50) = 0;
+
+	This->SendMessage(in_rMsg.m_SenderActorID, in_rMsg.m_spSelf);
+
+	sm64_mario_bounce_off_enemy();
+	return true;
+}
+
+HOOK(void, __fastcall, CSonicClassicProcMsgDamage, 0xDEA340, Sonic::Player::CSonic* This, void* _, hh::fnd::Message& in_rMsg)
+{
+	if (!ProcMsgDamage(This, in_rMsg))
+		originalCSonicClassicProcMsgDamage(This, _, in_rMsg);
+}
+
+HOOK(void, __fastcall, CSonicProcMsgDamage, 0xE27890, Sonic::Player::CSonic* This, void* _, hh::fnd::Message& in_rMsg)
+{
+	if (!ProcMsgDamage(This, in_rMsg))
+		originalCSonicProcMsgDamage(This, _, in_rMsg);
+}
+
 void initMario()
 {
 	INSTALL_HOOK(CGameplayFlowStageOnExit);
@@ -651,6 +681,8 @@ void initMario()
 	INSTALL_HOOK(CPlayerSpeedStatePluginDamageFireLeave);
 	INSTALL_HOOK(CPlayerSpeedStatePluginLookAtEnter);
 	INSTALL_HOOK(CPlayerSpeedStatePluginLookAtLeave);
+	INSTALL_HOOK(CSonicClassicProcMsgDamage);
+	INSTALL_HOOK(CSonicProcMsgDamage);
 
 	// Allocate a continuous vertex buffer and give parts of it to vertex elements.
 	const auto bufferHeap = new float[(3 + 3 + 3 + 2) * 3 * SM64_GEO_MAX_TRIANGLES * 2];

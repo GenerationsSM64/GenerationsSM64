@@ -433,10 +433,27 @@ uint8_t sm64_mario_pushing_wall(void) {
     return (gMarioState->flags & MARIO_UNKNOWN_31) != 0;
 }
 
-void sm64_mario_squish() {
+void sm64_mario_squish(void) {
     if (gMarioState->squishTimer == 0 || gMarioState->squishTimer == 0xFF) {
         gMarioState->squishTimer = 30;
     }
+}
+
+uint8_t sm64_mario_can_bounce_off_enemy(void) {
+    return (gMarioState->action & ACT_FLAG_INVULNERABLE) == 0
+           && (gMarioState->action & ACT_FLAG_AIR) != 0 && gMarioState->vel[1] < 0.0f;
+}
+
+void sm64_mario_bounce_off_enemy(void) {
+    if (gMarioState->vel[1] < 0.0f) {
+        gMarioState->vel[1] = -gMarioState->vel[1];
+    }
+
+    if (gMarioState->vel[1] < 30.0f) {
+        gMarioState->vel[1] = 30.0f;
+    }
+
+    gMarioState->flags &= ~MARIO_UNKNOWN_08;
 }
 
 uint32_t sm64_surface_object_create(const struct SM64SurfaceObject *surfaceObject) {
