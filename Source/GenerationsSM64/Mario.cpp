@@ -21,6 +21,7 @@ bool controlSonicGrounded;
 Sonic::CRigidBody* prevRigidBody;
 hh::math::CMatrix prevRigidBodyMatrixInverse;
 bool fireDamage;
+bool lookAt;
 
 void deleteMario()
 {
@@ -112,6 +113,7 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 	const bool invulnerable = sm64_mario_is_invulnerable();
 
 	bool ignoreInput =
+		lookAt ||
 		(!invulnerable && playerContext->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_OutOfControl]) ||
 		stateName == "HangOn" ||
 		stateName == "LightSpeedDash" ||
@@ -622,6 +624,18 @@ HOOK(void, __fastcall, CPlayerSpeedStatePluginDamageFireLeave, 0x12335D0, void* 
 	originalCPlayerSpeedStatePluginDamageFireLeave(This);
 }
 
+HOOK(void, __fastcall, CPlayerSpeedStatePluginLookAtEnter, 0xE3F420, void* This)
+{
+	lookAt = true;
+	originalCPlayerSpeedStatePluginLookAtEnter(This);
+}
+
+HOOK(void, __fastcall, CPlayerSpeedStatePluginLookAtLeave, 0xE3F3B0, void* This)
+{
+	lookAt = false;
+	originalCPlayerSpeedStatePluginLookAtLeave(This);
+}
+
 void initMario()
 {
 	INSTALL_HOOK(CGameplayFlowStageOnExit);
@@ -635,6 +649,8 @@ void initMario()
 	INSTALL_HOOK(StartOutOfControl);
 	INSTALL_HOOK(CPlayerSpeedStatePluginDamageFireEnter);
 	INSTALL_HOOK(CPlayerSpeedStatePluginDamageFireLeave);
+	INSTALL_HOOK(CPlayerSpeedStatePluginLookAtEnter);
+	INSTALL_HOOK(CPlayerSpeedStatePluginLookAtLeave);
 
 	// Allocate a continuous vertex buffer and give parts of it to vertex elements.
 	const auto bufferHeap = new float[(3 + 3 + 3 + 2) * 3 * SM64_GEO_MAX_TRIANGLES * 2];
