@@ -205,7 +205,15 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 
 		int animId = -1;
 
-		if (animName == "JumpBall" || animName == "SpinAttack" || playerContext->m_IsBallModel)
+		if (animName == "TransformRocket" || animName == "TransformSpike")
+		{
+			animId = MARIO_ANIM_FORWARD_SPINNING;
+
+			if (stateName != "TransformRocket" && stateName != "TransformSpike")
+				scale = 0.0f;
+		}
+
+		else if (animName == "JumpBall" || animName == "SpinAttack" || playerContext->m_IsBallModel)
 		{
 			animId = MARIO_ANIM_FORWARD_SPINNING;
 
@@ -219,14 +227,6 @@ void updateMario(Sonic::Player::CPlayer* player, const hh::fnd::SUpdateInfo& upd
 		{
 			animId = MARIO_ANIM_IDLE_ON_LEDGE;
 			animOffset = 1.1f;
-		}
-
-		else if (animName == "TransformRocket" || animName == "TransformSpike")
-		{
-			animId = MARIO_ANIM_FORWARD_SPINNING;
-
-			if (stateName != "TransformRocket" && stateName != "TransformSpike")
-				scale = 0.0f;
 		}
 
 		else if (animName == "Squat")
