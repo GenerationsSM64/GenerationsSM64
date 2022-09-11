@@ -190,7 +190,7 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 		wallDirectionCurrentFaceAngle = state.faceAngle;
 	}
 
-	const bool hasBoostCollision = sm64_mario_should_use_boost_collision();
+	const bool ignoreBreakables = sm64_mario_should_use_boost_collision() || sm64_mario_should_use_stomp_collision();
 
 	hh::math::CVector directionCurr;
 
@@ -205,7 +205,7 @@ extern "C" s32 find_wall_collisions(struct WallCollisionData* data)
 
 	for (auto& direction : wallDirections)
 	{
-		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, true, data->offsetY, data->radius, hasBoostCollision);
+		Surface* surface = rayCast(data->x, data->y, data->z, nullptr, direction, true, data->offsetY, data->radius, ignoreBreakables);
 
 		if (!surface)
 			continue;
