@@ -1,3 +1,7 @@
+# SM64 Generations v1.2
+* Minor improvements to visuals & collisions.
+* Implemented bouncing on enemies.
+
 # SM64 Generations v1.1.1
 * Fix sound not working when audio device is set to default in configuration tool.
 
